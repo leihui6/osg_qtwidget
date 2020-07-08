@@ -11,7 +11,7 @@ This is a point cloud visualization tool mainly provided by [maisvendoo](https:/
 
 ## Usage
 
-It support load `*.txt` file now.
+It supports load `*.txt` file now.
 
 ## Screenshot
 
