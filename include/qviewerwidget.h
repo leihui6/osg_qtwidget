@@ -1,10 +1,13 @@
-#ifndef     QVIEWER_WIDGET_H
-#define     QVIEWER_WIDGET_H
+#ifndef QVIEWER_WIDGET_H
+#define QVIEWER_WIDGET_H
 
-#include    <QWidget>
+#include <QtGui>
+#include <QWidget>
+#include <QWindow>
+#include <iostream>
 
-#include    <osgViewer/Viewer>
-#include    <osgQt/GraphicsWindowQt>
+#include <osgViewer/Viewer>
+#include <osgQt/GraphicsWindowQt>
 
 //------------------------------------------------------------------------------
 //
@@ -25,7 +28,7 @@ protected:
 
     osg::ref_ptr<osg::Group> scene;
 
-    osgViewer::Viewer   viewer;
+    osgViewer::Viewer viewer;
 
 private:
 
@@ -34,6 +37,8 @@ private:
     void initCamera(const QRect &geometry);
 
     void paintEvent(QPaintEvent *);
+
+    osg::ref_ptr<osgQt::GraphicsWindowQt> m_gw;
 };
 
 #endif // QVIEWER_WIDGET_H

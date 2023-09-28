@@ -1,17 +1,19 @@
-#include    "qviewerwidget.h"
+#include "qviewerwidget.h"
 
-#include    <osgViewer/ViewerEventHandlers>
-#include    <osgGA/TrackballManipulator>
+#include <osgViewer/ViewerEventHandlers>
+#include <osgGA/TrackballManipulator>
+#include <QWindow>
+#include <QDebug>
+#include <QGridLayout>
+#include <Qt>
+#include <QOpenGLContext>
 
-#include    <QGridLayout>
-
-//------------------------------------------------------------------------------
-//
-//------------------------------------------------------------------------------
 QViewerWidget::QViewerWidget(const QRect &geometry)
     : QWidget()
     , scene(new osg::Group)
 {
+    this->setAttribute(Qt::WA_NativeWindow, true);
+
     initCamera(geometry);
 
     viewer.setSceneData(scene);
@@ -30,40 +32,28 @@ QViewerWidget::QViewerWidget(const QRect &geometry)
     }
 }
 
-//------------------------------------------------------------------------------
-//
-//------------------------------------------------------------------------------
 QViewerWidget::~QViewerWidget()
 {
 
 }
 
-//------------------------------------------------------------------------------
-//
-//------------------------------------------------------------------------------
 osg::Group *QViewerWidget::getScene()
 {
     return scene.get();
 }
 
-//------------------------------------------------------------------------------
-//
-//------------------------------------------------------------------------------
 osgViewer::Viewer *QViewerWidget::getViewer()
 {
     return &viewer;
 }
 
-//------------------------------------------------------------------------------
-//
-//------------------------------------------------------------------------------
 osgQt::GraphicsWindowQt *QViewerWidget::createGraphicsWindow(const QRect &geometry)
 {
     osg::DisplaySettings *ds = osg::DisplaySettings::instance().get();
 
     osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
     traits->windowName = "";
-    traits->windowDecoration = false;
+    traits->windowDecoration = true;
     traits->x = geometry.x();
     traits->y = geometry.y();
     traits->width = geometry.width();
@@ -76,29 +66,32 @@ osgQt::GraphicsWindowQt *QViewerWidget::createGraphicsWindow(const QRect &geomet
     traits->stencil = ds->getMinimumNumStencilBits();
     traits->sampleBuffers = ds->getMultiSamples();
     traits->samples = ds->getNumMultiSamples();
+    traits->vsync = false;
 
     return new osgQt::GraphicsWindowQt(traits.get());
 }
 
-//------------------------------------------------------------------------------
-//
-//------------------------------------------------------------------------------
 void QViewerWidget::initCamera(const QRect &geometry)
 {
     osg::Camera *camera = viewer.getCamera();
 
-    osg::ref_ptr<osgQt::GraphicsWindowQt> gw = createGraphicsWindow(geometry);
-    gw->setTouchEventsEnabled(true);
-    camera->setGraphicsContext(gw.get());
+    m_gw = createGraphicsWindow(geometry);
 
-    const osg::GraphicsContext::Traits *traits = gw->getTraits();
+    m_gw->setTouchEventsEnabled(true);
+    camera->setGraphicsContext(m_gw.get());
+
+    const osg::GraphicsContext::Traits *traits = m_gw->getTraits();
     camera->setClearColor(osg::Vec4(0.7f, 0.7f, 0.7f, 1.0f));
-
     camera->setViewport(0, 0, traits->width, traits->height);
 
     double aspect = static_cast<double>(traits->width) / static_cast<double>(traits->height);
     camera->setProjectionMatrixAsPerspective(30.0, aspect, 1.0, 1000.0);
-    camera->setClearColor(osg::Vec4(53/255.0,81/255.0 ,2/255.0,1));
+    camera->setClearColor(
+                osg::Vec4(
+                    float(53/255.0),
+                    float(81/255.0),
+                    float(2/255.0),1)
+                );
     GLenum buffer = (traits->doubleBuffer) ? GL_BACK : GL_FRONT;
     camera->setDrawBuffer(buffer);
     camera->setReadBuffer(buffer);
@@ -108,10 +101,15 @@ void QViewerWidget::initCamera(const QRect &geometry)
     camera->setCullingMode(cullingMode);
 }
 
-//------------------------------------------------------------------------------
-//
-//------------------------------------------------------------------------------
 void QViewerWidget::paintEvent(QPaintEvent *)
 {
-    viewer.frame();
+    // refer:: https://github.com/USNavalResearchLaboratory/simdissdk/blob/8b214e46968ec89ea752fd2eb2db9458e65eff31/SDK/simQt/ViewWidget.cpp#L43
+    osgQt::GLWidget * widget = m_gw->getGLWidget();
+    if (widget && widget->windowHandle())
+    {
+        if (widget->windowHandle()->isExposed())
+        {
+            viewer.frame();
+        }
+    }
 }

@@ -7,6 +7,7 @@ This is a point cloud visualization tool mainly provided by [maisvendoo](https:/
 ## Requirements
 
 -OSG 3.6.4
+
 -Qt 5.13
 
 ## Usage
