@@ -6,8 +6,11 @@
 #include <QWindow>
 #include <iostream>
 
+
 #include <osgViewer/Viewer>
 #include <osgQt/GraphicsWindowQt>
+
+#include "cloud_geometry.h"
 
 //------------------------------------------------------------------------------
 //
@@ -24,11 +27,20 @@ public:
 
     osgViewer::Viewer *getViewer();
 
-protected:
+public:
+    size_t add_point_cloud(std::vector<point_3d> & point_cloud, const std::string point_cloud_name);
 
-    osg::ref_ptr<osg::Group> scene;
+    int show_XYZ_axes();
 
-    osgViewer::Viewer viewer;
+    int activate_XYZ_axes(bool show_status);
+
+private:
+
+    osg::ref_ptr<osg::Group> m_scene;
+
+    osgViewer::Viewer m_viewer;
+
+    osg::ref_ptr<osgQt::GraphicsWindowQt> m_gw;
 
 private:
 
@@ -38,7 +50,21 @@ private:
 
     void paintEvent(QPaintEvent *);
 
-    osg::ref_ptr<osgQt::GraphicsWindowQt> m_gw;
+// Basic functions for OSG
+private:
+    int set_color(const std::string & point_cloud_name, osg::Vec4 color);
+    int activate_point_cloud(const std::string &point_cloud_name, bool status);
+
+    std::map<std::string, osg::ref_ptr<osg::Node>> m_node_map;
+
+    int points_to_osg_structure(std::vector<point_3d>& points, osg::ref_ptr<osg::Vec3Array> coords, osg::ref_ptr<osg::Vec4Array> colors, float w);
+
+    int points_to_geometry_node(std::vector<point_3d> & points, osg::ref_ptr<osg::Geometry> geometry, float r = 0, float g = 0, float b = 0, float w = 1.0);
+
+    int add_line_segment(const point_3d &beg_p, const point_3d &end_p, const std::string & line_name, float line_width);
+
+    int update(const std::string & point_cloud_name,osg::ref_ptr<osg::Node> node);
+
 };
 
 #endif // QVIEWER_WIDGET_H

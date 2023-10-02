@@ -1,8 +1,11 @@
 #ifndef     MAINWINDOW_H
 #define     MAINWINDOW_H
 
+#include    <QObject>
 #include    <QMainWindow>
 #include    <QTimer>
+#include    <QTextEdit>
+
 
 #include    "cloud_io.h"
 #include    "qviewerwidget.h"
@@ -28,16 +31,24 @@ public:
     ~MainWindow();
 
 private:
+    QString m_add_xyz_text;
+    QAction * get_menu_action(const QString & action_name);
+    bool set_menu_action(const QString & action_name, bool action_status);
 
-    Ui::MainWindow *ui;
+    int initialization_scene();
+private:
 
-    QViewerWidget *qviewer;
+    int print2widget(QString text, QTextEdit * textEdit);
+
+    Ui::MainWindow * m_ui;
+
+    QViewerWidget * m_qviewer;
 
     QTimer timer;
 
     void paintEvent(QPaintEvent *);
 
-    cloud_io ci;
+    cloud_io m_ci;
 
 private slots:
 
@@ -48,6 +59,8 @@ private slots:
     void clean();
 
     void quit();
+
+    void on_actionAdd_XYZ_axes_toggled(bool arg1);
 };
 
 #endif // MAINWINDOW_H
