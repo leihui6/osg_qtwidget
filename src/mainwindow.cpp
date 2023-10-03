@@ -13,7 +13,6 @@ MainWindow::MainWindow(QWidget *parent)
     , m_add_xyz_text("Add XYZ axes")
     , m_ui(new Ui::MainWindow)
     , m_qviewer(Q_NULLPTR)
-
 {
     m_ui->setupUi(this);
     //this->setAttribute(Qt::WA_NativeWindow, true);
@@ -48,7 +47,6 @@ int MainWindow::initialization_scene()
     set_menu_action(m_add_xyz_text, true);
 
     m_qviewer->show_XYZ_axes();
-    m_qviewer->activate_XYZ_axes(true);
 
     return 0;
 }
@@ -94,7 +92,7 @@ void MainWindow::open()
     if (path.isEmpty())
         return;
 
-    scene->removeChildren(0, scene->getNumChildren());
+    //scene->removeChildren(0, scene->getNumChildren());
 
     std::vector<point_3d> points;
     m_ci.load_point_cloud_txt(path.toStdString(), points);
@@ -104,16 +102,12 @@ void MainWindow::open()
 
 void MainWindow::clean()
 {
-    osg::Group *scene = m_qviewer->getScene();
-
-    if (scene == nullptr)
-        return;
-
-    scene->removeChildren(0, scene->getNumChildren());
+    m_qviewer->clean();
 }
 
 void MainWindow::quit()
 {
+    this->clean();
     QApplication::quit();
 }
 
@@ -130,6 +124,7 @@ bool MainWindow::set_menu_action(const QString & action_name, bool action_status
 
 QAction * MainWindow::get_menu_action(const QString & action_name)
 {
+    bool is_action_found = false;
     foreach (QAction *action, this->menuBar()->actions())
     {
         foreach (QAction *subaction, action->menu()->actions())
@@ -137,12 +132,12 @@ QAction * MainWindow::get_menu_action(const QString & action_name)
             if(subaction->text() == action_name)
             {
                 action->setCheckable(true);
-                std::cout << "found" <<std::endl;
                 return subaction;
             }
         }
     }
-
+    if (!is_action_found)
+    {} // TODO Warning
     return nullptr;
 }
 

@@ -14,14 +14,14 @@ QViewerWidget::QViewerWidget(const QRect &geometry)
 {
     this->setAttribute(Qt::WA_NativeWindow, true);
 
+    load_config("./data/config.json");
+
     initCamera(geometry);
 
     m_viewer.setSceneData(m_scene);
     m_viewer.addEventHandler(new osgViewer::StatsHandler);
     m_viewer.setCameraManipulator(new osgGA::TrackballManipulator);
     m_viewer.setThreadingModel(osgViewer::Viewer::SingleThreaded);
-    m_viewer.home();
-
     osgQt::GraphicsWindowQt *gw = static_cast<osgQt::GraphicsWindowQt *>(m_viewer.getCamera()->getGraphicsContext());
 
     QGridLayout *layout = new QGridLayout;
@@ -31,6 +31,7 @@ QViewerWidget::QViewerWidget(const QRect &geometry)
         layout->addWidget(gw->getGLWidget());
         this->setLayout(layout);
     }
+    m_viewer.home();
 }
 
 QViewerWidget::~QViewerWidget()
@@ -48,6 +49,17 @@ osgViewer::Viewer *QViewerWidget::getViewer()
     return &m_viewer;
 }
 
+int QViewerWidget::clean()
+{
+    if (m_scene == nullptr)
+        return 1;
+
+    m_scene->removeChildren(0, m_scene->getNumChildren());
+    m_node_map.clear();
+
+    return 0;
+}
+
 size_t QViewerWidget::add_point_cloud(std::vector<point_3d> & point_cloud, const std::string point_cloud_name)
 {
     osg::ref_ptr<osg::Geode> geode = new osg::Geode();
@@ -58,7 +70,6 @@ size_t QViewerWidget::add_point_cloud(std::vector<point_3d> & point_cloud, const
     geode->addDrawable(geometry);
 
     update(point_cloud_name, geode);
-    m_viewer.home();
 
     return point_cloud.size();
 }
@@ -68,11 +79,63 @@ int QViewerWidget::activate_XYZ_axes(bool show_status)
     activate_point_cloud("axis_x", show_status);
     activate_point_cloud("axis_y", show_status);
     activate_point_cloud("axis_z", show_status);
+    //qDebug() << "activate function";
+
+    return 0;
+}
+
+osg::Vec4f QViewerWidget::json_array2vec4(QJsonValue & value)
+{
+    float v4[4] = {};
+    auto tmp = value.toArray().toVariantList();
+    for(int i=0; i < tmp.length();++i)
+    {
+        v4[i] = float(tmp.at(i).toFloat());
+    }
+    return osg::Vec4f(v4[0],v4[1],v4[2],v4[3]);
+}
+
+int QViewerWidget::load_config(QString config_name)
+{
+    QFile loadFile(config_name);
+    if (!loadFile.open(QIODevice::ReadOnly))
+    {
+        qWarning("Couldn't open save file.");
+        return false;
+    }
+
+    QByteArray saveData = loadFile.readAll();
+    QJsonParseError parseError;
+    QJsonDocument loadDoc(QJsonDocument::fromJson(saveData, &parseError));
+    if (parseError.error != QJsonParseError::NoError)
+    {
+       qDebug() <<"error:" << parseError.errorString();
+       return 1;
+    }
+
+    const QJsonObject & json= loadDoc.object();
+    foreach(const QString& key, json.keys())
+    {
+        QJsonValue value = json.value(key);
+        //qDebug() << "Key = " << key << ", Value = " << value.toArray();
+        if (key == "default-background-color" && value.isArray())
+        {
+            m_bgc = json_array2vec4(value);
+        }
+        else if (key == "default-pointcloud-color" && value.isArray()){
+            m_pcc= json_array2vec4(value);
+        }
+        else if (key == "default-pointcloud-size" && value.isDouble()) {
+            m_pcs = value.toInt();
+        }
+    }
+    return 0;
 }
 
 int QViewerWidget::show_XYZ_axes()
 {
-    point_3d p0(0,0,0), p1(1,0,0),p2(0,1,0),p3(0,0,1);
+    float scale = 1.0;
+    point_3d p0(0,0,0), p1(1*scale,0,0),p2(0,1*scale,0),p3(0,0,1*scale);
     std::vector<point_3d> line_segment_points{p0, p1, p0, p2, p0, p3};
 
     add_line_segment(p0, p1, "axis_x", 4);
@@ -83,6 +146,8 @@ int QViewerWidget::show_XYZ_axes()
 
     add_line_segment(p0, p3, "axis_z", 4);
     set_color("axis_z", osg::Vec4(0, 0, 255, 1));
+
+    return 0;
 }
 
 
@@ -127,10 +192,11 @@ void QViewerWidget::initCamera(const QRect &geometry)
     camera->setProjectionMatrixAsPerspective(30.0, aspect, 1.0, 500.0);
     camera->setClearColor(
                 osg::Vec4(
-                    float(53/255.0),
-                    float(81/255.0),
-                    float(2/255.0),1)
-                );
+                    float(m_bgc[0]/255),
+                    float(m_bgc[1]/255),
+                    float(m_bgc[2]/255),
+                    m_bgc[3])
+            );
     GLenum buffer = (traits->doubleBuffer) ? GL_BACK : GL_FRONT;
     camera->setDrawBuffer(buffer);
     camera->setReadBuffer(buffer);
@@ -165,6 +231,8 @@ int QViewerWidget::set_color(const std::string &point_cloud_name, osg::Vec4 colo
 
     node->asGeode()->getChild(0)->asGeometry()->setColorArray(colors.get());
     node->asGeode()->getChild(0)->asGeometry()->setColorBinding(osg::Geometry::BIND_OVERALL);
+
+    return 0;
 }
 
 int QViewerWidget::activate_point_cloud(const std::string &point_cloud_name, bool status)
@@ -190,7 +258,7 @@ int QViewerWidget::points_to_osg_structure(std::vector<point_3d>& points, osg::r
     return 0;
 }
 
-int QViewerWidget::points_to_geometry_node(std::vector<point_3d> &points, osg::ref_ptr<osg::Geometry> geometry, float r, float g, float b, float w)
+int QViewerWidget::points_to_geometry_node(std::vector<point_3d> &points, osg::ref_ptr<osg::Geometry> geometry, float w)
 {
     osg::ref_ptr<osg::Vec3Array> coords = new osg::Vec3Array();
     osg::ref_ptr<osg::Vec4Array> colors = new osg::Vec4Array();
@@ -222,27 +290,37 @@ int QViewerWidget::add_line_segment(const point_3d &beg_p, const point_3d &end_p
     node->addChild(geometry);
 
     update(line_name,node);
+
+    return 0;
 }
 
 int QViewerWidget::update(const std::string &point_cloud_name, osg::ref_ptr<osg::Node> node)
 {
     osg::ref_ptr<osg::Node> scene = m_viewer.getSceneData();
 
-       if(!scene) return 1;
+   if(!scene) return 1;
 
-       // add new one
-       if(m_node_map.find(point_cloud_name) == m_node_map.end())
-       {
-           scene->asGroup()->addChild(node);
-           m_node_map[point_cloud_name] = node;
-       }
-       // replace the current one
-       else
-       {
-           scene->asGroup()->replaceChild(m_node_map[point_cloud_name].get(),node);
-           m_node_map[point_cloud_name] = node;
-       }
-       //std::cout << m_node_map.size()<<std::endl;
+   // add new one
+   if(m_node_map.find(point_cloud_name) == m_node_map.end())
+   {
+       scene->asGroup()->addChild(node);
+       m_node_map[point_cloud_name] = node;
+   }
+   // replace the current one
+   else
+   {
+       scene->asGroup()->replaceChild(m_node_map[point_cloud_name].get(),node);
+       m_node_map[point_cloud_name] = node;
+       qDebug() << "Replace";
+   }
 
-       return 0;
+   set_color(point_cloud_name, m_pcc);
+   qDebug()
+           <<"Children Number:"<< scene->asGroup()->getNumChildren()
+          << " scene:" <<scene
+          <<"m_node_map size:"<< m_node_map.size();
+
+   m_viewer.home();
+
+   return 0;
 }

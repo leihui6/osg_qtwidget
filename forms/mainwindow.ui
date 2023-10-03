@@ -93,6 +93,7 @@ p, li { white-space: pre-wrap; }
      <string>Settings</string>
     </property>
     <addaction name="actionAdd_XYZ_axes"/>
+    <addaction name="actionColors"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuSettings"/>
@@ -157,6 +158,11 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="text">
     <string>Add XYZ axes</string>
+   </property>
+  </action>
+  <action name="actionColors">
+   <property name="text">
+    <string>Colors</string>
    </property>
   </action>
  </widget>

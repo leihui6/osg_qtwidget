@@ -6,6 +6,10 @@
 #include <QWindow>
 #include <iostream>
 
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonValue>
 
 #include <osgViewer/Viewer>
 #include <osgQt/GraphicsWindowQt>
@@ -21,11 +25,15 @@ public:
 
     QViewerWidget(const QRect &geometry);
 
+    int load_config(QString config_name);
+
     virtual ~QViewerWidget();
 
     osg::Group *getScene();
 
     osgViewer::Viewer *getViewer();
+
+    int clean();
 
 public:
     size_t add_point_cloud(std::vector<point_3d> & point_cloud, const std::string point_cloud_name);
@@ -36,6 +44,13 @@ public:
 
 private:
 
+    // default background color
+    osg::Vec4f m_bgc;
+    // default pointcloud color
+    osg::Vec4f m_pcc;
+    // default pointcloud size
+    int m_pcs;
+
     osg::ref_ptr<osg::Group> m_scene;
 
     osgViewer::Viewer m_viewer;
@@ -43,6 +58,8 @@ private:
     osg::ref_ptr<osgQt::GraphicsWindowQt> m_gw;
 
 private:
+
+    osg::Vec4f json_array2vec4(QJsonValue & value);
 
     osgQt::GraphicsWindowQt *createGraphicsWindow(const QRect &geometry);
 
@@ -59,7 +76,7 @@ private:
 
     int points_to_osg_structure(std::vector<point_3d>& points, osg::ref_ptr<osg::Vec3Array> coords, osg::ref_ptr<osg::Vec4Array> colors, float w);
 
-    int points_to_geometry_node(std::vector<point_3d> & points, osg::ref_ptr<osg::Geometry> geometry, float r = 0, float g = 0, float b = 0, float w = 1.0);
+    int points_to_geometry_node(std::vector<point_3d> & points, osg::ref_ptr<osg::Geometry> geometry, float w = 1.0);
 
     int add_line_segment(const point_3d &beg_p, const point_3d &end_p, const std::string & line_name, float line_width);
 

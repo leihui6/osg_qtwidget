@@ -61,6 +61,7 @@ private slots:
     void quit();
 
     void on_actionAdd_XYZ_axes_toggled(bool arg1);
+    void on_actionColors_triggered();
 };
 
 #endif // MAINWINDOW_H
