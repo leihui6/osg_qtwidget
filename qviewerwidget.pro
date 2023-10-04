@@ -75,5 +75,7 @@ HEADERS += $$files(./include/*.h) \
     cloud_geometry.h \
     cloud_io.h \
     cloud_geometry.h \
-    cloud_io.h
-FORMS += $$files(./forms/*.ui)
+    cloud_io.h \
+    forms/settingsdialog.h
+FORMS += $$files(./forms/*.ui) \
+    forms/settingsdialog.ui

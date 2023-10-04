@@ -68,6 +68,44 @@ void MainWindow::paintEvent(QPaintEvent *)
     }
 }
 
+void MainWindow::set_background_color(osg::Vec4f &c)
+{
+    osg::ref_ptr<osg::Camera> camera = m_qviewer->getViewer()->getCamera();
+    camera->setClearColor(
+                osg::Vec4(
+                    c[0]/255,
+                    c[1]/255.0f,
+            c[2]/255.0f,c[3]));
+}
+
+void MainWindow::set_pointcloud_color(osg::Vec4f &c)
+{
+    QVector<QString> pointcloud_list = m_qviewer->get_pointcloud_list();
+    for (QString & pcn: pointcloud_list)
+    {
+        // update all pointclouds with the new color
+        if (pcn.indexOf("pointcloud") != -1)
+        {
+            qDebug() << pcn;
+            m_qviewer->set_pointcloud_color(pcn, c);
+        }
+    }
+}
+
+void MainWindow::set_pointcloud_size(int point_size)
+{
+    QVector<QString> pointcloud_list = m_qviewer->get_pointcloud_list();
+    for (QString & pcn: pointcloud_list)
+    {
+        // update all pointclouds with the new color
+        if (pcn.indexOf("pointcloud") != -1)
+        {
+            qDebug() << pcn;
+            m_qviewer->set_pointcloud_size(pcn, point_size);
+        }
+    }
+}
+
 void MainWindow::update()
 {
     if (windowHandle() && windowHandle()->isExposed())
@@ -95,9 +133,9 @@ void MainWindow::open()
     //scene->removeChildren(0, scene->getNumChildren());
 
     std::vector<point_3d> points;
-    m_ci.load_point_cloud_txt(path.toStdString(), points);
+    m_ci.load_point_cloud_txt(path, points);
     std::cout << points.size()<<std::endl;
-    m_qviewer->add_point_cloud(points, "point_cloud_1");
+    m_qviewer->add_point_cloud(points, "pointcloud_1");
 }
 
 void MainWindow::clean()
@@ -156,5 +194,37 @@ void MainWindow::on_actionAdd_XYZ_axes_toggled(bool arg1)
 
 void MainWindow::on_actionColors_triggered()
 {
+    m_setting_wiondow = new SettingsDialog(this);
+    QString m_title = "Default Settings";
+    m_setting_wiondow->setWindowTitle(m_title);
+    m_setting_wiondow->set_default_value(m_qviewer->m_bgc, m_qviewer->m_pcc, m_qviewer->m_pcs);
 
+    m_setting_wiondow->setWindowFlags(windowFlags() &~ Qt::WindowContextHelpButtonHint);
+    m_setting_wiondow->setWindowFlags(windowFlags() &~ Qt::WindowMaximizeButtonHint);
+
+    auto fontMetrics = m_setting_wiondow->fontMetrics();
+    auto width = fontMetrics.boundingRect(m_title).width();
+    m_setting_wiondow->setFixedSize(width*4, m_setting_wiondow->rect().height());
+
+    if (m_setting_wiondow->exec() == QDialog::Accepted)
+    {
+        qDebug() << "accepted";
+
+        m_qviewer->m_bgc = m_setting_wiondow->m_bgc;
+        m_qviewer->m_pcc = m_setting_wiondow->m_pcc;
+        m_qviewer->m_pcs = m_setting_wiondow->m_pcs;
+        m_setting_wiondow = nullptr;
+
+        //dialog_settings_ui->get_configuration();
+        //qDebug() <<"bgc"<< m_qviewer->m_bgc[0] << m_qviewer->m_bgc[1] << m_qviewer->m_bgc[2];
+        //qDebug() <<"pcc"<< m_qviewer->m_pcc[0] << m_qviewer->m_pcc[1] << m_qviewer->m_pcc[2];
+        //qDebug() <<"pcs"<< m_qviewer->m_pcs;
+        set_background_color(m_qviewer->m_bgc);
+        set_pointcloud_color(m_qviewer->m_pcc);
+        set_pointcloud_size(m_qviewer->m_pcs);
+    }
+    else
+    {
+        //qDebug() << "rejected";
+    }
 }

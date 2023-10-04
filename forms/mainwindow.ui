@@ -162,7 +162,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionColors">
    <property name="text">
-    <string>Colors</string>
+    <string>Change Default Settings</string>
    </property>
   </action>
  </widget>

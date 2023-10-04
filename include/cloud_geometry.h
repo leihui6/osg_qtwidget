@@ -7,6 +7,7 @@
 #include <fstream>
 #include <sstream>
 
+#include <QString>
 #include <osg/LineWidth>
 #include <osg/Geometry>
 #include <osg/Geode>

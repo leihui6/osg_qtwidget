@@ -54,13 +54,13 @@ int QViewerWidget::clean()
     if (m_scene == nullptr)
         return 1;
 
-    m_scene->removeChildren(0, m_scene->getNumChildren());
-    m_node_map.clear();
+    //m_scene->removeChildren(0, m_scene->getNumChildren());
+    //m_node_map.clear();
 
     return 0;
 }
 
-size_t QViewerWidget::add_point_cloud(std::vector<point_3d> & point_cloud, const std::string point_cloud_name)
+size_t QViewerWidget::add_point_cloud(std::vector<point_3d> & point_cloud, const QString point_cloud_name)
 {
     osg::ref_ptr<osg::Geode> geode = new osg::Geode();
     osg::ref_ptr<osg::Geometry> geometry = new osg::Geometry();
@@ -82,6 +82,16 @@ int QViewerWidget::activate_XYZ_axes(bool show_status)
     //qDebug() << "activate function";
 
     return 0;
+}
+
+QVector<QString> QViewerWidget::get_pointcloud_list()
+{
+    QVector<QString> pointcloud_list;
+
+    for (auto & node: m_node_map) {
+        pointcloud_list.push_back(node.first);
+    }
+    return pointcloud_list;
 }
 
 osg::Vec4f QViewerWidget::json_array2vec4(QJsonValue & value)
@@ -139,13 +149,13 @@ int QViewerWidget::show_XYZ_axes()
     std::vector<point_3d> line_segment_points{p0, p1, p0, p2, p0, p3};
 
     add_line_segment(p0, p1, "axis_x", 4);
-    set_color("axis_x", osg::Vec4(255, 0, 0, 1));
+    set_pointcloud_color("axis_x", osg::Vec4(255, 0, 0, 1));
 
     add_line_segment(p0, p2, "axis_y", 4);
-    set_color("axis_y", osg::Vec4(0, 255, 0, 1));
+    set_pointcloud_color("axis_y", osg::Vec4(0, 255, 0, 1));
 
     add_line_segment(p0, p3, "axis_z", 4);
-    set_color("axis_z", osg::Vec4(0, 0, 255, 1));
+    set_pointcloud_color("axis_z", osg::Vec4(0, 0, 255, 1));
 
     return 0;
 }
@@ -219,7 +229,7 @@ void QViewerWidget::paintEvent(QPaintEvent *)
     }
 }
 
-int QViewerWidget::set_color(const std::string &point_cloud_name, osg::Vec4 color)
+int QViewerWidget::set_pointcloud_color(const QString &point_cloud_name, osg::Vec4 point_color)
 {
     if (m_node_map.find(point_cloud_name) == m_node_map.end()) return 1;
 
@@ -227,7 +237,7 @@ int QViewerWidget::set_color(const std::string &point_cloud_name, osg::Vec4 colo
     osg::ref_ptr<osg::Vec4Array> colors = new osg::Vec4Array();
     //color.set( color.r()/255.0f,color.g()/255.0f,color.b()/255.0f,color.w());
 
-    colors->push_back(color);
+    colors->push_back(point_color);
 
     node->asGeode()->getChild(0)->asGeometry()->setColorArray(colors.get());
     node->asGeode()->getChild(0)->asGeometry()->setColorBinding(osg::Geometry::BIND_OVERALL);
@@ -235,7 +245,17 @@ int QViewerWidget::set_color(const std::string &point_cloud_name, osg::Vec4 colo
     return 0;
 }
 
-int QViewerWidget::activate_point_cloud(const std::string &point_cloud_name, bool status)
+int QViewerWidget::set_pointcloud_size(const QString &point_cloud_name, int point_size)
+{
+    auto it = m_node_map.find(point_cloud_name);
+    if (it == m_node_map.end())
+        return 1;
+
+    osg::StateSet* stateSet = it->second->asGeode()->getChild(0)->asGeometry()->getOrCreateStateSet();
+    stateSet->setAttribute(new osg::Point(point_size));
+}
+
+int QViewerWidget::activate_point_cloud(const QString &point_cloud_name, bool status)
 {
     osg::ref_ptr<osg::Node> scene = m_viewer.getSceneData();
     if(!scene) return false;
@@ -276,7 +296,7 @@ int QViewerWidget::points_to_geometry_node(std::vector<point_3d> &points, osg::r
     return 0;
 }
 
-int QViewerWidget::add_line_segment(const point_3d &beg_p, const point_3d &end_p, const std::string &line_name, float line_width)
+int QViewerWidget::add_line_segment(const point_3d &beg_p, const point_3d &end_p, const QString &line_name, float line_width)
 {
     osg::ref_ptr<osg::Geometry> geometry = new osg::Geometry();
     std::vector<point_3d> line_segment{beg_p,end_p};
@@ -294,27 +314,29 @@ int QViewerWidget::add_line_segment(const point_3d &beg_p, const point_3d &end_p
     return 0;
 }
 
-int QViewerWidget::update(const std::string &point_cloud_name, osg::ref_ptr<osg::Node> node)
+int QViewerWidget::update(const QString &point_cloud_name, osg::ref_ptr<osg::Node> node)
 {
     osg::ref_ptr<osg::Node> scene = m_viewer.getSceneData();
 
-   if(!scene) return 1;
+    if(!scene) return 1;
 
-   // add new one
-   if(m_node_map.find(point_cloud_name) == m_node_map.end())
-   {
+    // add new one
+    if(m_node_map.find(point_cloud_name) == m_node_map.end())
+    {
        scene->asGroup()->addChild(node);
        m_node_map[point_cloud_name] = node;
-   }
-   // replace the current one
-   else
-   {
+    }
+    // replace the current one
+    else
+    {
        scene->asGroup()->replaceChild(m_node_map[point_cloud_name].get(),node);
        m_node_map[point_cloud_name] = node;
        qDebug() << "Replace";
-   }
+    }
 
-   set_color(point_cloud_name, m_pcc);
+   set_pointcloud_color(point_cloud_name, m_pcc);
+   set_pointcloud_size(point_cloud_name, m_pcs);
+
    qDebug()
            <<"Children Number:"<< scene->asGroup()->getNumChildren()
           << " scene:" <<scene

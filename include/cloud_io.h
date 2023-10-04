@@ -7,7 +7,7 @@ class cloud_io
 {
 public:
     cloud_io();
-    bool load_point_cloud_txt(const std::string & filename, std::vector<point_3d>& points);
+    bool load_point_cloud_txt(const QString & filename, std::vector<point_3d>& points);
 };
 
 #endif // CLOUD_IO_H

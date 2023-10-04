@@ -5,11 +5,11 @@ cloud_io::cloud_io()
 
 }
 
-bool cloud_io::load_point_cloud_txt(const std::string & filename, std::vector<point_3d>& points)
+bool cloud_io::load_point_cloud_txt(const QString & filename, std::vector<point_3d>& points)
 {
     points.clear();
 
-    std::ifstream ifile(filename, std::ios::in);
+    std::ifstream ifile(filename.toStdString(), std::ios::in);
 
     if (!ifile.is_open())
     {

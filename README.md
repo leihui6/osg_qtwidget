@@ -2,17 +2,17 @@
 
 This is a point cloud visualization tool mainly provided by [maisvendoo](https://github.com/maisvendoo/OSG-lessons), if you found it is helpful, please do not hesitate to star his repository.
 
-> note: do not forget press `space` after loading a new point cloud data.
-
 ## Requirements
 
--OSG 3.6.4
-
--Qt 5.13
+- OSG 3.6.4
+- Qt 5.13
+- VS 2017+
 
 ## Usage
 
-It supports load `*.txt` file now.
+It is developing...
+
+The goal of this specific version is to build a point cloud visulization&processing software for my PhD project.
 
 ## Screenshot
 
