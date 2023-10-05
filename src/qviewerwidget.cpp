@@ -70,7 +70,6 @@ size_t QViewerWidget::add_point_cloud(std::vector<point_3d> & point_cloud, const
     geode->addDrawable(geometry);
 
     update(point_cloud_name, geode);
-
     return point_cloud.size();
 }
 
@@ -235,7 +234,7 @@ int QViewerWidget::set_pointcloud_color(const QString &point_cloud_name, osg::Ve
 
     osg::ref_ptr<osg::Node> node = m_node_map[point_cloud_name];
     osg::ref_ptr<osg::Vec4Array> colors = new osg::Vec4Array();
-    //color.set( color.r()/255.0f,color.g()/255.0f,color.b()/255.0f,color.w());
+    point_color.set( point_color.r()/255.0f,point_color.g()/255.0f,point_color.b()/255.0f,point_color.w());
 
     colors->push_back(point_color);
 
