@@ -23,7 +23,7 @@
    <item row="0" column="0">
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout" stretch="8,0">
+      <layout class="QHBoxLayout" name="horizontalLayout" stretch="8,0,0">
        <item>
         <widget class="QLabel" name="label">
          <property name="text">
@@ -32,16 +32,26 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="cbx_apply_now">
+         <property name="text">
+          <string>Apply now</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QPushButton" name="btn_bgc">
          <property name="text">
-          <string> </string>
+          <string/>
          </property>
         </widget>
        </item>
       </layout>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="8,0">
+      <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="8,0,0">
        <item>
         <widget class="QLabel" name="label_3">
          <property name="text">
@@ -50,16 +60,26 @@
         </widget>
        </item>
        <item>
+        <widget class="QLabel" name="label_question_mark">
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="text">
+          <string>   ?   </string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QPushButton" name="btn_pcc">
          <property name="text">
-          <string> </string>
+          <string/>
          </property>
         </widget>
        </item>
       </layout>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="8,2">
+      <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="8,0">
        <item>
         <widget class="QLabel" name="label_2">
          <property name="text">
@@ -68,9 +88,12 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="let_pcs">
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
+        <widget class="QSpinBox" name="sbx_pcc">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>10</number>
          </property>
         </widget>
        </item>
@@ -80,6 +103,16 @@
    </item>
    <item row="1" column="0">
     <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <item>
+      <widget class="QCheckBox" name="cbx_save_as_config">
+       <property name="text">
+        <string>Save as config</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
      <item>
       <widget class="QPushButton" name="pushButton">
        <property name="text">

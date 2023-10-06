@@ -10,11 +10,16 @@
 
 QViewerWidget::QViewerWidget(const QRect &geometry)
     : QWidget()
+    , m_bgc(0,0,0,1)
+    , m_pcc(255,255,255,1)
+    , m_pcs(1)
+    , m_config_name("./data/config.json")
     , m_scene(new osg::Group)
+
 {
     this->setAttribute(Qt::WA_NativeWindow, true);
 
-    load_config("./data/config.json");
+    load_config(m_config_name);
 
     initCamera(geometry);
 
@@ -75,9 +80,9 @@ size_t QViewerWidget::add_point_cloud(std::vector<point_3d> & point_cloud, const
 
 int QViewerWidget::activate_XYZ_axes(bool show_status)
 {
-    activate_point_cloud("axis_x", show_status);
-    activate_point_cloud("axis_y", show_status);
-    activate_point_cloud("axis_z", show_status);
+    activate_point_cloud(AXIS_X, show_status);
+    activate_point_cloud(AXIS_Y, show_status);
+    activate_point_cloud(AXIS_Z, show_status);
     //qDebug() << "activate function";
 
     return 0;
@@ -104,6 +109,7 @@ osg::Vec4f QViewerWidget::json_array2vec4(QJsonValue & value)
     return osg::Vec4f(v4[0],v4[1],v4[2],v4[3]);
 }
 
+
 int QViewerWidget::load_config(QString config_name)
 {
     QFile loadFile(config_name);
@@ -112,32 +118,61 @@ int QViewerWidget::load_config(QString config_name)
         qWarning("Couldn't open save file.");
         return false;
     }
-
     QByteArray saveData = loadFile.readAll();
+    loadFile.close();
+
     QJsonParseError parseError;
     QJsonDocument loadDoc(QJsonDocument::fromJson(saveData, &parseError));
+
     if (parseError.error != QJsonParseError::NoError)
     {
        qDebug() <<"error:" << parseError.errorString();
+
+       m_bgc = osg::Vec4f(0,0,0,1);
+       m_pcc = osg::Vec4f(255,255,255,1);
+       m_pcs = 1;
        return 1;
     }
 
-    const QJsonObject & json= loadDoc.object();
-    foreach(const QString& key, json.keys())
+    const QJsonObject & jsonObject= loadDoc.object();
+    foreach(const QString& key, jsonObject.keys())
     {
-        QJsonValue value = json.value(key);
+        QJsonValue value = jsonObject.value(key);
         //qDebug() << "Key = " << key << ", Value = " << value.toArray();
-        if (key == "default-background-color" && value.isArray())
+        if (key == KEY_BGC && value.isArray())
         {
             m_bgc = json_array2vec4(value);
         }
-        else if (key == "default-pointcloud-color" && value.isArray()){
+        else if (key == KEY_PCC && value.isArray()){
             m_pcc= json_array2vec4(value);
         }
-        else if (key == "default-pointcloud-size" && value.isDouble()) {
+        else if (key == KEY_PCS && value.isDouble()) {
             m_pcs = value.toInt();
         }
     }
+    return 0;
+}
+
+int QViewerWidget::save_config()
+{
+    QJsonObject jsonObject;
+
+    jsonObject.insert(KEY_BGC, QJsonArray({int(m_bgc[0]), int(m_bgc[1]), int(m_bgc[2]), int(m_bgc[3])}));
+    jsonObject.insert(KEY_PCC, QJsonArray({int(m_pcc[0]), int(m_pcc[1]), int(m_pcc[2]), int(m_pcc[3])}));
+    jsonObject.insert(KEY_PCS, m_pcs);
+
+    QJsonDocument jsonDoc;
+    jsonDoc.setObject(jsonObject);
+
+    QFile file(m_config_name);
+    // for test
+    //QFile file("./data/config2.json");
+    if(!file.open(QIODevice::WriteOnly)) {
+        return 1;
+    }
+    file.write(jsonDoc.toJson());
+    file.close();
+
     return 0;
 }
 
@@ -147,13 +182,13 @@ int QViewerWidget::show_XYZ_axes()
     point_3d p0(0,0,0), p1(1*scale,0,0),p2(0,1*scale,0),p3(0,0,1*scale);
     std::vector<point_3d> line_segment_points{p0, p1, p0, p2, p0, p3};
 
-    add_line_segment(p0, p1, "axis_x", 4);
+    add_line_segment(p0, p1, AXIS_X, 2);
     set_pointcloud_color("axis_x", osg::Vec4(255, 0, 0, 1));
 
-    add_line_segment(p0, p2, "axis_y", 4);
+    add_line_segment(p0, p2, AXIS_Y, 2);
     set_pointcloud_color("axis_y", osg::Vec4(0, 255, 0, 1));
 
-    add_line_segment(p0, p3, "axis_z", 4);
+    add_line_segment(p0, p3, AXIS_Z, 2);
     set_pointcloud_color("axis_z", osg::Vec4(0, 0, 255, 1));
 
     return 0;
@@ -252,7 +287,11 @@ int QViewerWidget::set_pointcloud_size(const QString &point_cloud_name, int poin
 
     osg::StateSet* stateSet = it->second->asGeode()->getChild(0)->asGeometry()->getOrCreateStateSet();
     stateSet->setAttribute(new osg::Point(point_size));
+
+    return 0;
 }
+
+
 
 int QViewerWidget::activate_point_cloud(const QString &point_cloud_name, bool status)
 {
@@ -330,7 +369,7 @@ int QViewerWidget::update(const QString &point_cloud_name, osg::ref_ptr<osg::Nod
     {
        scene->asGroup()->replaceChild(m_node_map[point_cloud_name].get(),node);
        m_node_map[point_cloud_name] = node;
-       qDebug() << "Replace";
+       //qDebug() << "Replace";
     }
 
    set_pointcloud_color(point_cloud_name, m_pcc);

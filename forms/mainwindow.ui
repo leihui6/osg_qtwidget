@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QGridLayout" name="gridLayout">
+   <layout class="QGridLayout" name="gridLayout" columnstretch="1,4" columnminimumwidth="1,4">
     <item row="0" column="1">
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
@@ -36,7 +36,17 @@
      </layout>
     </item>
     <item row="0" column="0">
-     <layout class="QVBoxLayout" name="verticalLayout_2">
+     <layout class="QVBoxLayout" name="verticalLayout_2" stretch="5,0,5">
+      <item>
+       <layout class="QVBoxLayout" name="vlayout_control_panel"/>
+      </item>
+      <item>
+       <widget class="Line" name="line">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
       <item>
        <widget class="QTextEdit" name="textEdit">
         <property name="sizePolicy">

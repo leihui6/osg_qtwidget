@@ -11,11 +11,14 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , m_add_xyz_text("Add XYZ axes")
+    , m_pc_num(0)
     , m_ui(new Ui::MainWindow)
     , m_qviewer(Q_NULLPTR)
 {
     m_ui->setupUi(this);
+    //this->setWindowFlags(Qt::CustomizeWindowHint);
     //this->setAttribute(Qt::WA_NativeWindow, true);
+    //this->m_ui-
     // make frame as a nativewindow, avoid the non-expose windows problem
     m_ui->frame->setAttribute(Qt::WA_NativeWindow, true);
 
@@ -34,7 +37,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     initialization_scene();
 
-    this->setWindowTitle("QViewerWidget example");
+    this->setWindowTitle(TITLE);
 }
 
 MainWindow::~MainWindow()
@@ -84,9 +87,9 @@ void MainWindow::set_pointcloud_color(osg::Vec4f &c)
     for (QString & pcn: pointcloud_list)
     {
         // update all pointclouds with the new color
-        if (pcn.indexOf("pointcloud") != -1)
+        if (pcn.indexOf(PCNAME) != -1)
         {
-            qDebug() << pcn;
+            //qDebug() << pcn;
             m_qviewer->set_pointcloud_color(pcn, c);
         }
     }
@@ -98,12 +101,36 @@ void MainWindow::set_pointcloud_size(int point_size)
     for (QString & pcn: pointcloud_list)
     {
         // update all pointclouds with the new color
-        if (pcn.indexOf("pointcloud") != -1)
+        if (pcn.indexOf(PCNAME) != -1)
         {
-            qDebug() << pcn;
+            //qDebug() << pcn;
             m_qviewer->set_pointcloud_size(pcn, point_size);
         }
     }
+}
+
+void MainWindow::update_control_panel()
+{
+    QLabel * control_panel_pc_name = new QLabel(this);
+    control_panel_pc_name->setText("test");
+
+    QPushButton * control_panel_color = new QPushButton();
+    control_panel_color->setText("C");
+
+    QPushButton * control_panel_size = new QPushButton();
+    control_panel_size->setText("S");
+
+    QPushButton * control_panel_hide = new QPushButton();
+    control_panel_hide->setText("H");
+
+    QHBoxLayout * one_layout = new QHBoxLayout;
+    one_layout->addWidget(control_panel_pc_name);
+    one_layout->addStretch();
+    one_layout->addWidget(control_panel_color);
+    one_layout->addWidget(control_panel_size);
+    one_layout->addWidget(control_panel_hide);
+
+    m_ui->vlayout_control_panel->addLayout(one_layout);
 }
 
 void MainWindow::update()
@@ -135,7 +162,10 @@ void MainWindow::open()
     std::vector<point_3d> points;
     m_ci.load_point_cloud_txt(path, points);
     std::cout << points.size()<<std::endl;
-    m_qviewer->add_point_cloud(points, "pointcloud_1");
+    m_qviewer->add_point_cloud(points, PCNAME + ("#" + QVariant(m_pc_num).toString()));
+    m_pc_num += 1;
+
+    update_control_panel();
 }
 
 void MainWindow::clean()
@@ -213,15 +243,26 @@ void MainWindow::on_actionColors_triggered()
         m_qviewer->m_bgc = m_setting_wiondow->m_bgc;
         m_qviewer->m_pcc = m_setting_wiondow->m_pcc;
         m_qviewer->m_pcs = m_setting_wiondow->m_pcs;
-        m_setting_wiondow = nullptr;
 
         //dialog_settings_ui->get_configuration();
         //qDebug() <<"bgc"<< m_qviewer->m_bgc[0] << m_qviewer->m_bgc[1] << m_qviewer->m_bgc[2];
         //qDebug() <<"pcc"<< m_qviewer->m_pcc[0] << m_qviewer->m_pcc[1] << m_qviewer->m_pcc[2];
         //qDebug() <<"pcs"<< m_qviewer->m_pcs;
-        set_background_color(m_qviewer->m_bgc);
-        set_pointcloud_color(m_qviewer->m_pcc);
-        set_pointcloud_size(m_qviewer->m_pcs);
+        //set_background_color(m_qviewer->m_bgc);
+        //set_pointcloud_color(m_qviewer->m_pcc);
+        //set_pointcloud_size(m_qviewer->m_pcs);
+
+        if (m_setting_wiondow->if_save_as_config())
+        {
+            m_qviewer->save_config();
+        }
+
+        if (m_setting_wiondow->if_background_apply_now())
+        {
+            set_background_color(m_qviewer->m_bgc);
+        }
+
+        m_setting_wiondow = nullptr;
     }
     else
     {

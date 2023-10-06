@@ -7,7 +7,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-
+    ui->label_question_mark->setToolTip("This colour will be applied to the point cloud to be loaded first.");
 }
 
 SettingsDialog::~SettingsDialog()
@@ -23,10 +23,20 @@ int SettingsDialog::set_default_value(osg::Vec4f &_bgc, osg::Vec4f &_pcc, int _p
     ui->btn_pcc->setStyleSheet(rgb2str(_pcc));
     m_pcc = _pcc;
 
-    ui->let_pcs->setText(QString::number(_pcs));
+    ui->sbx_pcc->setValue(_pcs);
     m_pcs = _pcs;
 
     return 0;
+}
+
+bool SettingsDialog::if_save_as_config()
+{
+    return ui->cbx_save_as_config->isChecked();
+}
+
+bool SettingsDialog::if_background_apply_now()
+{
+    return ui->cbx_apply_now->isChecked();
 }
 
 QString SettingsDialog::rgb2str(osg::Vec4f &c)
@@ -40,7 +50,7 @@ QString SettingsDialog::rgb2str(osg::Vec4f &c)
 
 void SettingsDialog::on_btn_bgc_clicked()
 {
-    QColor color = QColorDialog::getColor(Qt::white, this);
+    QColor color = QColorDialog::getColor(QColor(int(m_bgc[0]), int(m_bgc[1]), int(m_bgc[2])), this);
     if (color.isValid())
     {
         float r, g, b;
@@ -52,34 +62,33 @@ void SettingsDialog::on_btn_bgc_clicked()
         m_bgc = tmp;
     }
     else {
-        qDebug() << "error";
+        //qDebug() << "error";
     }
 }
 
 void SettingsDialog::on_btn_pcc_clicked()
 {
-    QColor color = QColorDialog::getColor(Qt::black, this);
+    QColor color = QColorDialog::getColor(QColor(int(m_pcc[0]), int(m_pcc[1]), int(m_pcc[2])), this);
     if (color.isValid())
     {
         float r, g, b;
         r = color.red();
         g = color.green();
         b = color.blue();
-        qDebug() <<"SettingsDialog"<< r <<" "<< g <<" "<< b;
+        //qDebug() <<"SettingsDialog"<< r <<" "<< g <<" "<< b;
         osg::Vec4f tmp(r,g,b,1);
         m_pcc = tmp;
-        qDebug() <<"SettingsDialog"<< m_pcc[0] <<" "<< m_pcc[1] <<" "<< m_pcc[2];
+        //qDebug() <<"SettingsDialog"<< m_pcc[0] <<" "<< m_pcc[1] <<" "<< m_pcc[2];
         ui->btn_pcc->setStyleSheet(rgb2str(tmp));
     }
     else {
-        qDebug() << "error";
+        //qDebug() << "error";
     }
 }
 
 void SettingsDialog::on_pushButton_clicked()
 {
-    m_pcs = ui->let_pcs->text().toInt();
-
+    m_pcs =  m_pcs = ui->sbx_pcc->text().toInt();
     this->accept();
 }
 
@@ -87,3 +96,4 @@ void SettingsDialog::on_pushButton_2_clicked()
 {
     this->reject();
 }
+

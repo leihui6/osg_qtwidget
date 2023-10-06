@@ -17,6 +17,12 @@
 
 #include "cloud_geometry.h"
 
+#define KEY_BGC "default-background-color"
+#define KEY_PCC "default-pointcloud-color"
+#define KEY_PCS "default-pointcloud-size"
+#define AXIS_X "axis_x"
+#define AXIS_Y "axis_y"
+#define AXIS_Z "axis_z"
 
 class QViewerWidget : public QWidget
 {
@@ -50,7 +56,11 @@ public:
 
     int set_pointcloud_color(const QString & point_cloud_name, osg::Vec4 point_color);
     int set_pointcloud_size(const QString & point_cloud_name, int point_size);
+
+    int save_config();
 private:
+
+    QString m_config_name;
 
     std::map<QString, osg::ref_ptr<osg::Node>> m_node_map;
 
@@ -63,6 +73,8 @@ private:
 private:
 
     osg::Vec4f json_array2vec4(QJsonValue & value);
+
+    QJsonValue json_vec42array(osg::Vec4f & v);
 
     osgQt::GraphicsWindowQt *createGraphicsWindow(const QRect &geometry);
 

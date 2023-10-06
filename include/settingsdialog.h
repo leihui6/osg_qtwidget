@@ -2,6 +2,7 @@
 #define SETTINGSDIALOG_H
 
 #include <QDialog>
+#include <QIntValidator>
 #include <QColorDialog>
 #include <QDebug>
 
@@ -29,6 +30,9 @@ public:
     osg::Vec4f m_pcc;
     // default pointcloud size
     int m_pcs;
+
+    bool if_save_as_config();
+    bool if_background_apply_now();
 private slots:
     void on_btn_bgc_clicked();
     void on_btn_pcc_clicked();
