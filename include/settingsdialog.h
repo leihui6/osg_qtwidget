@@ -19,17 +19,14 @@ class SettingsDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit SettingsDialog(QWidget *parent = nullptr);
+    // window_model: 0: default setting; 1: settings for one point cloud
+    explicit SettingsDialog(const QString window_name, int window_model, QWidget *parent = nullptr);
     ~SettingsDialog();
 
-    int set_default_value(osg::Vec4f & _bgc, osg::Vec4f &_pcc, int _pcs);
+    int set_default_value(pointcloud_params & pc_params);
 
     // default background color
-    osg::Vec4f m_bgc;
-    // default pointcloud color
-    osg::Vec4f m_pcc;
-    // default pointcloud size
-    int m_pcs;
+    pointcloud_params m_pc_params;
 
     bool if_save_as_config();
     bool if_background_apply_now();

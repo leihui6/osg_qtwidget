@@ -10,9 +10,7 @@
 
 QViewerWidget::QViewerWidget(const QRect &geometry)
     : QWidget()
-    , m_bgc(0,0,0,1)
-    , m_pcc(255,255,255,1)
-    , m_pcs(1)
+    , m_pc_params()
     , m_config_name("./data/config.json")
     , m_scene(new osg::Group)
 
@@ -78,6 +76,16 @@ size_t QViewerWidget::add_point_cloud(std::vector<point_3d> & point_cloud, const
     return point_cloud.size();
 }
 
+size_t QViewerWidget::del_point_cloud(const QString point_cloud_name)
+{
+    osg::ref_ptr<osg::Geode> geode = nullptr;
+    update(point_cloud_name, geode);
+
+
+
+    return m_node_map.size();
+}
+
 int QViewerWidget::activate_XYZ_axes(bool show_status)
 {
     activate_point_cloud(AXIS_X, show_status);
@@ -128,9 +136,9 @@ int QViewerWidget::load_config(QString config_name)
     {
        qDebug() <<"error:" << parseError.errorString();
 
-       m_bgc = osg::Vec4f(0,0,0,1);
-       m_pcc = osg::Vec4f(255,255,255,1);
-       m_pcs = 1;
+       m_pc_params.background_color = osg::Vec4f(0,0,0,1);
+       m_pc_params.pointcloud_color = osg::Vec4f(255,255,255,1);
+       m_pc_params.pointcloud_size = 1;
        return 1;
     }
 
@@ -141,13 +149,13 @@ int QViewerWidget::load_config(QString config_name)
         //qDebug() << "Key = " << key << ", Value = " << value.toArray();
         if (key == KEY_BGC && value.isArray())
         {
-            m_bgc = json_array2vec4(value);
+            m_pc_params.background_color = json_array2vec4(value);
         }
         else if (key == KEY_PCC && value.isArray()){
-            m_pcc= json_array2vec4(value);
+            m_pc_params.pointcloud_color= json_array2vec4(value);
         }
         else if (key == KEY_PCS && value.isDouble()) {
-            m_pcs = value.toInt();
+            m_pc_params.pointcloud_size = value.toInt();
         }
     }
     return 0;
@@ -157,9 +165,12 @@ int QViewerWidget::save_config()
 {
     QJsonObject jsonObject;
 
-    jsonObject.insert(KEY_BGC, QJsonArray({int(m_bgc[0]), int(m_bgc[1]), int(m_bgc[2]), int(m_bgc[3])}));
-    jsonObject.insert(KEY_PCC, QJsonArray({int(m_pcc[0]), int(m_pcc[1]), int(m_pcc[2]), int(m_pcc[3])}));
-    jsonObject.insert(KEY_PCS, m_pcs);
+    jsonObject.insert(KEY_BGC,
+                      QJsonArray({int(m_pc_params.background_color[0]), int(m_pc_params.background_color[1]), int(m_pc_params.background_color[2]), int(m_pc_params.background_color[3])}));
+    jsonObject.insert(KEY_PCC,
+                      QJsonArray({int(m_pc_params.pointcloud_color[0]), int(m_pc_params.pointcloud_color[1]), int(m_pc_params.pointcloud_color[2]), int(m_pc_params.pointcloud_color[3])}));
+    jsonObject.insert(KEY_PCS,
+                      m_pc_params.pointcloud_size);
 
     QJsonDocument jsonDoc;
     jsonDoc.setObject(jsonObject);
@@ -236,10 +247,10 @@ void QViewerWidget::initCamera(const QRect &geometry)
     camera->setProjectionMatrixAsPerspective(30.0, aspect, 1.0, 500.0);
     camera->setClearColor(
                 osg::Vec4(
-                    float(m_bgc[0]/255),
-                    float(m_bgc[1]/255),
-                    float(m_bgc[2]/255),
-                    m_bgc[3])
+                    float(m_pc_params.background_color[0]/255),
+                    float(m_pc_params.background_color[1]/255),
+                    float(m_pc_params.background_color[2]/255),
+                    m_pc_params.background_color[3])
             );
     GLenum buffer = (traits->doubleBuffer) ? GL_BACK : GL_FRONT;
     camera->setDrawBuffer(buffer);
@@ -367,13 +378,21 @@ int QViewerWidget::update(const QString &point_cloud_name, osg::ref_ptr<osg::Nod
     // replace the current one
     else
     {
-       scene->asGroup()->replaceChild(m_node_map[point_cloud_name].get(),node);
-       m_node_map[point_cloud_name] = node;
+        //qDebug() << "Remove";
+       if (!node)
+       {
+           scene->asGroup()->removeChild(m_node_map[point_cloud_name].get());
+           m_node_map.erase(point_cloud_name);
+           return 0;
+       }
+
        //qDebug() << "Replace";
+       scene->asGroup()->replaceChild(m_node_map[point_cloud_name].get(), node);
+       m_node_map[point_cloud_name] = node;
     }
 
-   set_pointcloud_color(point_cloud_name, m_pcc);
-   set_pointcloud_size(point_cloud_name, m_pcs);
+   set_pointcloud_color(point_cloud_name, m_pc_params.pointcloud_color);
+   set_pointcloud_size(point_cloud_name, m_pc_params.pointcloud_size);
 
    qDebug()
            <<"Children Number:"<< scene->asGroup()->getNumChildren()

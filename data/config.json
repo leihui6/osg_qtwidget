@@ -1,15 +1,15 @@
 {
     "default-background-color": [
+        85,
         170,
-        255,
         255,
         1
     ],
     "default-pointcloud-color": [
         255,
-        255,
+        0,
         0,
         1
     ],
-    "default-pointcloud-size": 2
+    "default-pointcloud-size": 4
 }

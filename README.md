@@ -10,10 +10,10 @@ This is a point cloud visualization tool mainly provided by [maisvendoo](https:/
 
 ## Usage
 
-It is developing...
-
 The goal of this specific version is to build a point cloud visulization&processing software for my PhD project.
 
 ## Screenshot
 
-![screenshot](screenshot/screenshot.png)
+![screenshot](./screenshots/screenshot-1.png)
+
+![screenshot](./screenshots/screenshot-2.png)

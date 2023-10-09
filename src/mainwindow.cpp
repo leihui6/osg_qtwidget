@@ -12,13 +12,11 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , m_add_xyz_text("Add XYZ axes")
     , m_pc_num(0)
+    , m_current_pointcloud_name(NONE)
     , m_ui(new Ui::MainWindow)
     , m_qviewer(Q_NULLPTR)
 {
     m_ui->setupUi(this);
-    //this->setWindowFlags(Qt::CustomizeWindowHint);
-    //this->setAttribute(Qt::WA_NativeWindow, true);
-    //this->m_ui-
     // make frame as a nativewindow, avoid the non-expose windows problem
     m_ui->frame->setAttribute(Qt::WA_NativeWindow, true);
 
@@ -50,6 +48,9 @@ int MainWindow::initialization_scene()
     set_menu_action(m_add_xyz_text, true);
 
     m_qviewer->show_XYZ_axes();
+
+    m_ui->pbt_del->setEnabled(false);
+    m_ui->pbt_edit->setEnabled(false);
 
     return 0;
 }
@@ -111,26 +112,10 @@ void MainWindow::set_pointcloud_size(int point_size)
 
 void MainWindow::update_control_panel()
 {
-    QLabel * control_panel_pc_name = new QLabel(this);
-    control_panel_pc_name->setText("test");
+    QVector<QString> pc_name_list = m_qviewer->get_pointcloud_list();
 
-    QPushButton * control_panel_color = new QPushButton();
-    control_panel_color->setText("C");
-
-    QPushButton * control_panel_size = new QPushButton();
-    control_panel_size->setText("S");
-
-    QPushButton * control_panel_hide = new QPushButton();
-    control_panel_hide->setText("H");
-
-    QHBoxLayout * one_layout = new QHBoxLayout;
-    one_layout->addWidget(control_panel_pc_name);
-    one_layout->addStretch();
-    one_layout->addWidget(control_panel_color);
-    one_layout->addWidget(control_panel_size);
-    one_layout->addWidget(control_panel_hide);
-
-    m_ui->vlayout_control_panel->addLayout(one_layout);
+    if (!pc_name_list.empty())
+        m_ui->listWidget->addItem(pc_name_list.back());
 }
 
 void MainWindow::update()
@@ -161,7 +146,7 @@ void MainWindow::open()
 
     std::vector<point_3d> points;
     m_ci.load_point_cloud_txt(path, points);
-    std::cout << points.size()<<std::endl;
+    //std::cout << points.size()<<std::endl;
     m_qviewer->add_point_cloud(points, PCNAME + ("#" + QVariant(m_pc_num).toString()));
     m_pc_num += 1;
 
@@ -224,25 +209,14 @@ void MainWindow::on_actionAdd_XYZ_axes_toggled(bool arg1)
 
 void MainWindow::on_actionColors_triggered()
 {
-    m_setting_wiondow = new SettingsDialog(this);
-    QString m_title = "Default Settings";
-    m_setting_wiondow->setWindowTitle(m_title);
-    m_setting_wiondow->set_default_value(m_qviewer->m_bgc, m_qviewer->m_pcc, m_qviewer->m_pcs);
-
-    m_setting_wiondow->setWindowFlags(windowFlags() &~ Qt::WindowContextHelpButtonHint);
-    m_setting_wiondow->setWindowFlags(windowFlags() &~ Qt::WindowMaximizeButtonHint);
-
-    auto fontMetrics = m_setting_wiondow->fontMetrics();
-    auto width = fontMetrics.boundingRect(m_title).width();
-    m_setting_wiondow->setFixedSize(width*4, m_setting_wiondow->rect().height());
+    m_setting_wiondow = new SettingsDialog("Default Settings", 0, this);
+    m_setting_wiondow->set_default_value(m_qviewer->m_pc_params);
 
     if (m_setting_wiondow->exec() == QDialog::Accepted)
     {
         qDebug() << "accepted";
 
-        m_qviewer->m_bgc = m_setting_wiondow->m_bgc;
-        m_qviewer->m_pcc = m_setting_wiondow->m_pcc;
-        m_qviewer->m_pcs = m_setting_wiondow->m_pcs;
+        m_qviewer->m_pc_params = m_setting_wiondow->m_pc_params;
 
         //dialog_settings_ui->get_configuration();
         //qDebug() <<"bgc"<< m_qviewer->m_bgc[0] << m_qviewer->m_bgc[1] << m_qviewer->m_bgc[2];
@@ -259,13 +233,108 @@ void MainWindow::on_actionColors_triggered()
 
         if (m_setting_wiondow->if_background_apply_now())
         {
-            set_background_color(m_qviewer->m_bgc);
+            set_background_color(m_qviewer->m_pc_params.background_color);
         }
-
-        m_setting_wiondow = nullptr;
     }
     else
     {
         //qDebug() << "rejected";
+    }
+    m_setting_wiondow = nullptr;
+}
+
+void MainWindow::on_pbt_edit_clicked()
+{
+    if (m_ui->listWidget->count() == 0 || !m_ui->listWidget->currentItem())
+        return ;
+
+    QString current_pointcloud_name;
+    if (m_current_pointcloud_name != NONE)
+    {
+        current_pointcloud_name = m_ui->listWidget->currentItem()->text();
+        //qDebug() << current_pointcloud_name;
+    }
+
+    // TODO Edit window
+
+    m_setting_wiondow = new SettingsDialog(current_pointcloud_name + "-Settings", 1, this);
+    m_setting_wiondow->set_default_value(m_qviewer->m_pc_params);
+
+    if (m_setting_wiondow->exec() == QDialog::Accepted)
+    {
+        //qDebug() << "accepted";
+        set_background_color(m_setting_wiondow->m_pc_params.background_color);
+        m_qviewer->set_pointcloud_color(current_pointcloud_name, m_setting_wiondow->m_pc_params.pointcloud_color);
+        m_qviewer->set_pointcloud_size(current_pointcloud_name, m_setting_wiondow->m_pc_params.pointcloud_size);
+
+    }
+    else
+    {
+        //qDebug() << "rejected";
+    }
+    m_setting_wiondow = nullptr;
+    // end for edit window
+
+    m_current_pointcloud_name = NONE;
+    m_ui->pbt_edit->setEnabled(false);
+    m_ui->pbt_del->setEnabled(false);
+    m_ui->listWidget->clearSelection();
+}
+
+
+void MainWindow::on_pbt_del_clicked()
+{
+    if (m_ui->listWidget->count() == 0 || !m_ui->listWidget->currentItem())
+        return ;
+
+    QString current_pointcloud_name;
+    if (m_current_pointcloud_name != NONE)
+    {
+        current_pointcloud_name = m_ui->listWidget->currentItem()->text();
+        //qDebug() << current_pointcloud_name;
+    }
+
+    bool click_status = false;
+    QMessageBox::StandardButton reply = QMessageBox::question(this, current_pointcloud_name , "Delete pointcloud \"" + current_pointcloud_name + "\" ?",
+                                    QMessageBox::Yes|QMessageBox::No);
+    if (reply == QMessageBox::Yes)
+    {
+        click_status = true;
+    } else
+    {
+        click_status = false;
+    }
+
+    // No
+    if (!click_status)
+    {
+        return ;
+    }
+    // Yes
+    m_qviewer->del_point_cloud(current_pointcloud_name);
+
+    QList<QListWidgetItem*> items = m_ui->listWidget->selectedItems();
+    foreach(QListWidgetItem * item, items)
+    {
+        if (item->text() == current_pointcloud_name)
+        {
+            delete m_ui->listWidget->takeItem(m_ui->listWidget->row(item));
+        }
+    }
+
+    m_current_pointcloud_name = NONE;
+    m_ui->pbt_edit->setEnabled(false);
+    m_ui->pbt_del->setEnabled(false);
+    m_ui->listWidget->clearSelection();
+}
+
+void MainWindow::on_listWidget_itemClicked(QListWidgetItem *item)
+{
+    m_current_pointcloud_name = item->text();
+
+    if (m_ui->listWidget->count() > 0)
+    {
+        m_ui->pbt_edit->setEnabled(true);
+        m_ui->pbt_del->setEnabled(true);
     }
 }

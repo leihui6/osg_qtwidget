@@ -14,6 +14,33 @@
 #include <osg/Point>
 #include <osg/ShapeDrawable>
 
+struct pointcloud_params
+{
+    osg::Vec4f background_color;
+    osg::Vec4f pointcloud_color;
+    int pointcloud_size;
+
+    pointcloud_params():background_color(0,0,0,1), pointcloud_color(0,0,0,1), pointcloud_size(1) {}
+
+    pointcloud_params & operator = (const pointcloud_params & p)
+    {
+        if (this != &p)
+        {
+            this->background_color = p.background_color;
+            this->pointcloud_color = p.pointcloud_color;
+            this->pointcloud_size = p.pointcloud_size;
+        }
+        return *this;
+    }
+
+    pointcloud_params(const pointcloud_params & p)
+    {
+        this->background_color = p.background_color;
+        this->pointcloud_color = p.pointcloud_color;
+        this->pointcloud_size = p.pointcloud_size;
+    }
+};
+
 struct point_3d
 {
     point_3d(const point_3d & p);

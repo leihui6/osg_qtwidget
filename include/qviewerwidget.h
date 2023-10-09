@@ -41,16 +41,14 @@ public:
 
     size_t add_point_cloud(std::vector<point_3d> & point_cloud, const QString point_cloud_name);
 
+    size_t del_point_cloud(const QString point_cloud_name);
+
     int show_XYZ_axes();
 
     int activate_XYZ_axes(bool show_status);
 
-    // default background color
-    osg::Vec4f m_bgc;
-    // default pointcloud color
-    osg::Vec4f m_pcc;
-    // default pointcloud size
-    int m_pcs;
+    // default value for pointcloud
+    pointcloud_params m_pc_params;
 
     QVector<QString> get_pointcloud_list();
 
@@ -59,6 +57,8 @@ public:
 
     int save_config();
 private:
+
+
 
     QString m_config_name;
 
