@@ -123,7 +123,8 @@ int QViewerWidget::load_config(QString config_name)
     QFile loadFile(config_name);
     if (!loadFile.open(QIODevice::ReadOnly))
     {
-        qWarning("Couldn't open save file.");
+        std::string tmp ="Couldn't open save file" + config_name.toStdString();
+        qWarning(tmp.c_str());
         return false;
     }
     QByteArray saveData = loadFile.readAll();

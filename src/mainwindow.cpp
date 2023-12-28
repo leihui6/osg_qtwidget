@@ -33,18 +33,30 @@ MainWindow::MainWindow(QWidget *parent)
     connect(&timer, &QTimer::timeout, this, &MainWindow::update);
     timer.start(10);
 
-    initialization_scene();
-
+    initWidgets();
+    initDevices();
     this->setWindowTitle(TITLE);
 }
 
 MainWindow::~MainWindow()
 {
+    if (p_urobot)
+        delete p_urobot;
+
+    if (p_vsystem)
+        delete p_vsystem;
+
     delete m_ui;
 }
 
-int MainWindow::initialization_scene()
+int MainWindow::initWidgets()
 {
+    setLabelText(*m_ui->label_cam_signal, " ");
+    setLabelText(*m_ui->label_urob_signal, " ");
+    setLabelColor(*m_ui->label_cam_signal, "red");
+    setLabelColor(*m_ui->label_urob_signal, "red");
+    m_ui->pbt_scanning->setEnabled(true);
+
     set_menu_action(m_add_xyz_text, true);
 
     m_qviewer->show_XYZ_axes();
@@ -53,6 +65,52 @@ int MainWindow::initialization_scene()
     m_ui->pbt_edit->setEnabled(false);
 
     return 0;
+}
+
+void MainWindow::initDevices()
+{
+    // UR Robot
+    try
+    {
+        p_urobot = new URobot("192.168.1.254");
+        setLabelColor(*m_ui->label_cam_signal, "green");
+    }
+    catch (const std::exception&)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("UR Robot initialization failed");
+        msgBox.exec();
+        setLabelColor(*m_ui->label_cam_signal, "red");
+        m_ui->pbt_scanning->setEnabled(false);
+    }
+    // VisionSystem
+    try
+    {
+        p_vsystem = new VisionSystem("D:\\Program Files\\VST\\VisenTOP Studio\\VisenTOP Studio.exe");
+        setLabelColor(*m_ui->label_urob_signal, "green");
+    }
+    catch (const std::exception&)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("3D VisionSystem initialization failed");
+        msgBox.exec();
+        setLabelColor(*m_ui->label_urob_signal, "red");
+        m_ui->pbt_scanning->setEnabled(false);
+    }
+}
+
+void MainWindow::setLabelColor(QLabel & qlabel, QString color)
+{
+    QString color_text =
+        QString("min-width: 16px; min-height: 16px;max-width:16px; max-height: 16px;border-radius: 8px; background:%1;").arg(color);
+    qlabel.setStyleSheet(color_text);
+}
+
+void MainWindow::setLabelText(QLabel & qlabel, QString text)
+{
+    qlabel.setEnabled(true);
+    qlabel.clear();
+    qlabel.setText(text);
 }
 
 int MainWindow::print2widget(QString text, QTextEdit *textEdit )
@@ -336,5 +394,34 @@ void MainWindow::on_listWidget_itemClicked(QListWidgetItem *item)
     {
         m_ui->pbt_edit->setEnabled(true);
         m_ui->pbt_del->setEnabled(true);
+    }
+}
+
+void MainWindow::on_pbt_scanning_clicked()
+{
+    if (p_urobot->isConnected() && p_vsystem->isConnected())
+    {
+        // scan around 360 degree
+        for (size_t i = 0; i < 3; i++)
+        {
+            // scan the object
+            std::vector<VST3D_PT> capturedPointsOnce;
+            qDebug() << "scanning";
+            p_vsystem->scanOnce(capturedPointsOnce);
+            qDebug()<<"capturedPointsOnce.size:"<<capturedPointsOnce.size();
+            std::string filename = "./Points_"+std::to_string(i) +".txt";
+            p_vsystem->save2File(capturedPointsOnce, filename);
+
+            std::vector<point_3d> pointsVec;
+            VST3D_to_points3D(capturedPointsOnce, pointsVec);
+            m_qviewer->add_point_cloud(pointsVec, QString("Point#") + QString::number(i));
+
+            m_pc_num += 1;
+            update_control_panel();
+
+            // rotate the robot flange
+            qDebug() << "moving";
+            p_urobot->rotateAlongZ(20);
+        }
     }
 }

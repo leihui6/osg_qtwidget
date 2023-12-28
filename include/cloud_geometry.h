@@ -14,6 +14,8 @@
 #include <osg/Point>
 #include <osg/ShapeDrawable>
 
+#include "VisionBooster.h"
+
 struct pointcloud_params
 {
     osg::Vec4f background_color;
@@ -71,5 +73,7 @@ struct point_3d
 void points_to_osg_structure(std::vector<point_3d>& points, osg::ref_ptr<osg::Vec3Array> coords, osg::ref_ptr<osg::Vec4Array> colors, osg::ref_ptr<osg::Vec3Array> normals, float r, float g, float b, float w);
 
 void points_to_geometry_node(std::vector<point_3d>& points, osg::ref_ptr<osg::Geometry> geometry, float r, float g, float b, float w);
+
+void VST3D_to_points3D(const std::vector<VST3D_PT> & VST3DPoints, std::vector<point_3d> & point3DVec);
 
 #endif  // CLOUD_GEOMETRY_H

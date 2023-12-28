@@ -58,8 +58,6 @@ public:
     int save_config();
 private:
 
-
-
     QString m_config_name;
 
     std::map<QString, osg::ref_ptr<osg::Node>> m_node_map;

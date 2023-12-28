@@ -133,3 +133,23 @@ void points_to_osg_structure(std::vector<point_3d>& points, osg::ref_ptr<osg::Ve
 
     normals->push_back(osg::Vec3(0.0f, 1.0f, 0.0f));
 }
+
+
+void VST3D_to_points3D(const std::vector<VST3D_PT> & VST3DPoints, std::vector<point_3d> & point3DVec)
+{
+    point3DVec.resize(VST3DPoints.size());
+    point_3d tmp;
+    for (auto & p: VST3DPoints)
+    {
+        tmp.x = p.x;
+        tmp.y = p.y;
+        tmp.z = p.z;
+        tmp.nx = p.nx;
+        tmp.ny = p.ny;
+        tmp.nz = p.nz;
+        tmp.r = p.cr;
+        tmp.g = p.cg;
+        tmp.b = p.cb;
+        point3DVec.push_back(tmp);
+    }
+}

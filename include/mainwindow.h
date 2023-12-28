@@ -15,6 +15,8 @@
 // child window
 #include <settingsdialog.h>
 
+#include "URobot.h"
+#include "VIsionSystem.h"
 #include "cloud_io.h"
 #include "qviewerwidget.h"
 
@@ -41,7 +43,7 @@ private:
     QString m_add_xyz_text;
     QAction * get_menu_action(const QString & action_name);
     bool set_menu_action(const QString & action_name, bool action_status);
-    int initialization_scene();
+    int initWidgets();
 private:
     QString m_current_pointcloud_name;
     size_t m_pc_num;
@@ -59,6 +61,12 @@ private:
     void set_pointcloud_size(int point_size);
     void update_control_panel();
 
+    void initDevices();
+    void setLabelColor(QLabel & qlabel, QString color);
+    void setLabelText(QLabel & qlabel, QString text);
+    URobot * p_urobot;
+    VisionSystem * p_vsystem;
+
 private slots:
     void update();
     void open();
@@ -70,6 +78,7 @@ private slots:
     void on_pbt_del_clicked();
     //void on_listWidget_currentRowChanged(int currentRow);
     void on_listWidget_itemClicked(QListWidgetItem *item);
+    void on_pbt_scanning_clicked();
 };
 
 #endif // MAINWINDOW_H
