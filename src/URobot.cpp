@@ -51,12 +51,12 @@ void URobot::rotateAlongZ(float angle)
 
 bool URobot::isConnected()
 {
-	if (!rtdeControl.isConnected() || !rtdeReceive.isConnected())
+    if (!rtdeControl.isConnected() || !rtdeReceive.isConnected())
 	{
         qDebug() << "error: rtde connection failed";
 		return false;
 	}
-	else {
+    else {
 		return true;
 	}
 }

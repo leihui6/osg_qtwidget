@@ -127,21 +127,9 @@ message($$PWD/lib)
 
 INCLUDEPATH += $$PWD/include
 message($${INCLUDEPATH})
-SOURCES += $$files(./src/*.cpp) \
-    src/URobot.cpp \
-    src/VisionSystem.cpp
+SOURCES += $$files(./src/*.cpp)
 
-HEADERS += \
-    include/URobot.h \
-    include/VisionBooster.h \
-    include/VisionSystem.h \
-    include/cloud_geometry.h \
-    include/cloud_io.h \
-    include/cloud_geometry.h \
-    include/cloud_io.h \
-    include/mainwindow.h \
-    include/qviewerwidget.h \
-    include/settingsdialog.h
+HEADERS += $$files(./include/*.h)
 
 FORMS += $$files(./forms/*.ui) \
     forms/settingsdialog.ui

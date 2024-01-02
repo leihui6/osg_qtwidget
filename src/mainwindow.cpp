@@ -15,6 +15,8 @@ MainWindow::MainWindow(QWidget *parent)
     , m_current_pointcloud_name(NONE)
     , m_ui(new Ui::MainWindow)
     , m_qviewer(Q_NULLPTR)
+    , p_urobot(nullptr)
+    , p_vsystem(nullptr)
 {
     m_ui->setupUi(this);
     // make frame as a nativewindow, avoid the non-expose windows problem
@@ -69,33 +71,46 @@ int MainWindow::initWidgets()
 
 void MainWindow::initDevices()
 {
+    std::vector<int> deviceVec;
+    QMessageBox msgBox;
     // UR Robot
     try
     {
         p_urobot = new URobot("192.168.1.254");
         setLabelColor(*m_ui->label_cam_signal, "green");
+        deviceVec.push_back(0);
     }
     catch (const std::exception&)
     {
-        QMessageBox msgBox;
-        msgBox.setText("UR Robot initialization failed");
+        msgBox.setText("UR Robot Initialization Failed");
         msgBox.exec();
         setLabelColor(*m_ui->label_cam_signal, "red");
         m_ui->pbt_scanning->setEnabled(false);
+        deviceVec.push_back(1);
     }
+
     // VisionSystem
     try
     {
         p_vsystem = new VisionSystem("D:\\Program Files\\VST\\VisenTOP Studio\\VisenTOP Studio.exe");
         setLabelColor(*m_ui->label_urob_signal, "green");
+        deviceVec.push_back(0);
     }
     catch (const std::exception&)
     {
-        QMessageBox msgBox;
-        msgBox.setText("3D VisionSystem initialization failed");
+        msgBox.setText("3D VisionSystem Initialization Failed");
         msgBox.exec();
         setLabelColor(*m_ui->label_urob_signal, "red");
         m_ui->pbt_scanning->setEnabled(false);
+        deviceVec.push_back(1);
+    }
+
+    auto sum_devec = std::accumulate(deviceVec.begin(), deviceVec.end(),
+                                    decltype(deviceVec)::value_type(0));
+    if (sum_devec != 0)
+    {
+        msgBox.setText("Devices Initialization Failed");
+        msgBox.exec();
     }
 }
 

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef VISIONSYSTEM_H
+#define VISIONSYSTEM_H
 #include <iostream>
 #include <fstream>
 #include <stdio.h>
@@ -12,7 +13,7 @@
 #include "windows.h"
 #include "VisionBooster.h"
 
-const int CAPTURE_TIME_OUT = 6000; 
+//const int CAPTURE_TIME_OUT = 6000;
 // Scan once
 #define VST_SINGLE_SCAN			 
 //#define VST_UnorderedPointClouds // Unordered points
@@ -45,3 +46,4 @@ private:
     void retryCon(const std::string errorStr, const int codeLine, const std::string codeFile);
 };
 
+#endif

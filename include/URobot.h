@@ -1,4 +1,5 @@
-#pragma once
+#ifndef UROBOT_H
+#define UROBOT_H
 #define _USE_MATH_DEFINES
 #include <math.h>
 
@@ -40,3 +41,4 @@ private:
 
 	void showQ(const std::string preText, const std::vector<double>qList);
 };
+#endif

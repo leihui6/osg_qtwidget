@@ -136,7 +136,7 @@ void VisionSystem::retryCon(const std::string errorStr, const int codeLine, cons
 	while (true)
 	{
 		// 每次重新连接前延时几秒，相机，光栅硬件驱动加载需要时间
-		Sleep(CAPTURE_TIME_OUT);
+        Sleep(6000);
 
 		// 单机扫描情况
 		VST3D_RESULT = VST3D_Reset(this->installPath.data()); // 单机扫描重新连接扫描仪系统，重启

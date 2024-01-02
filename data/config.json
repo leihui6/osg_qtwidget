@@ -11,5 +11,6 @@
         0,
         1
     ],
-    "default-pointcloud-size": 4
+    "default-pointcloud-size": 4,
+    "crop_1": []
 }

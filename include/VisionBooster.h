@@ -32,7 +32,8 @@
 //
 //=============================================================================
 
-#pragma once
+#ifndef VISIONBOOSTER_H
+#define VISIONBOOSTER_H
 
 #ifdef DLL_VST3D_EXPORTS
 #define DLL_VST3D_API __declspec(dllexport)
@@ -240,3 +241,5 @@ extern "C"
 	DLL_VST3D_API int _stdcall VST3Ds_GetImage(unsigned char **pImag, int &width, int &height, bool bLeft = true); // Get Camera image buffer and size in scanning. where bLeft == true(defalut) ? Left :Right
 	DLL_VST3D_API int _stdcall VST3Ds_GetImageSize(int &width, int &height);									   // Get Camera image size in scanning...
 }
+
+#endif
