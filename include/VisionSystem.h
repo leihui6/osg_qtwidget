@@ -49,6 +49,8 @@ public:
 	
     void save2File(const std::vector<VST3D_PT> & VSTPoints, std::string filename);
 
+    void transformPointcloud(const std::vector<VST3D_PT> & VSTPoints, Eigen::Matrix4f & m, std::vector<VST3D_PT> & new_VSTPoints, const cropSize_t & cropSize = cropSize_t(), bool ifCrop = false);
+
 	void cropPointCloud(const cropSize_t & cropSize, const std::vector<VST3D_PT> & VSTPoints, std::vector<VST3D_PT> & new_VSTPoints);
 
 	const cropSize_t calBoundingBox(const std::vector<VST3D_PT> & VSTPoints);

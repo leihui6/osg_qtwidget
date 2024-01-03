@@ -129,6 +129,38 @@ void VisionSystem::save2File(const std::vector<VST3D_PT> &VSTPoints, std::string
     of.close();
 }
 
+void VisionSystem::transformPointcloud(const std::vector<VST3D_PT>& VSTPoints, Eigen::Matrix4f & m,
+                                       std::vector<VST3D_PT>& new_VSTPoints, const cropSize_t & cropSize, bool ifCrop)
+{
+    std::vector<VST3D_PT> optVSTPoints;
+    if (ifCrop)
+    {
+        cropPointCloud(cropSize, VSTPoints, optVSTPoints);
+    }
+    else
+    {
+        optVSTPoints = VSTPoints;
+    }
+
+    std::vector<Eigen::Vector4f> pointsEigen;
+    pointsEigen.resize(optVSTPoints.size());
+
+    for (auto &p : optVSTPoints)
+    {
+        pointsEigen.push_back(Eigen::Vector4f{p.x, p.y, p.z, 1});
+    }
+
+    new_VSTPoints.resize(optVSTPoints.size());
+    VST3D_PT tmp;
+    for (auto &p : pointsEigen)
+    {
+        tmp.x = (m * p)[0];
+        tmp.y = (m * p)[1];
+        tmp.z = (m * p)[2];
+        new_VSTPoints.push_back(tmp);
+    }
+}
+
 void VisionSystem::cropPointCloud(const cropSize_t & cropSize, const std::vector<VST3D_PT>& VSTPoints, std::vector<VST3D_PT>& new_VSTPoints)
 {
 	new_VSTPoints.clear();

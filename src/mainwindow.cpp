@@ -420,7 +420,7 @@ void MainWindow::on_pbt_scanning_clicked()
         for (size_t i = 0; i < 3; i++)
         {
             // scan the object
-            std::vector<VST3D_PT> capturedPointsOnce;
+            std::vector<VST3D_PT> capturedPointsOnce, t_capturedPointsOnce;
             qDebug() << "scanning";
             p_vsystem->scanOnce(capturedPointsOnce);
             qDebug()<<"capturedPointsOnce.size:"<<capturedPointsOnce.size();
@@ -432,7 +432,7 @@ void MainWindow::on_pbt_scanning_clicked()
             m_qviewer->add_point_cloud(pointsVec, QString("scannedPoint#") + QString::number(i));
 
             Eigen::Matrix4f tsfm = p_vsystem->generateRMatrixAlongAxis(cylinderPoint,cylinderAxis,eachAngle);
-
+            p_vsystem->transformPointcloud(capturedPointsOnce, tsfm, t_capturedPointsOnce);
             //m_pc_num += 1;
             update_control_panel();
 
