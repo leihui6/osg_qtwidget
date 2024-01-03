@@ -41,6 +41,8 @@ public:
 
     size_t add_point_cloud(std::vector<point_3d> & point_cloud, const QString point_cloud_name);
 
+    int add_line_segment(const point_3d &beg_p, const point_3d &end_p, const QString & line_name, float line_width);
+
     size_t del_point_cloud(const QString point_cloud_name);
 
     int show_XYZ_axes();
@@ -88,8 +90,6 @@ private:
     int points_to_osg_structure(std::vector<point_3d>& points, osg::ref_ptr<osg::Vec3Array> coords, osg::ref_ptr<osg::Vec4Array> colors, float w);
 
     int points_to_geometry_node(std::vector<point_3d> & points, osg::ref_ptr<osg::Geometry> geometry, float w = 1.0);
-
-    int add_line_segment(const point_3d &beg_p, const point_3d &end_p, const QString & line_name, float line_width);
 
     int update(const QString & point_cloud_name, osg::ref_ptr<osg::Node> node);
 

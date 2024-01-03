@@ -125,6 +125,15 @@ LIBS += -L$${BOOST_LIB_DIRECTORY} -llibboost_zlib-vc141-mt-x64-1_71
 LIBS += -L$$PWD/lib -lVisionBooster
 message($$PWD/lib)
 
+# Eigen
+INCLUDEPATH += $$(EIGEN_ROOT)
+message($$(EIGEN_ROOT))
+
+#Python
+INCLUDEPATH += $$(PYTHON39)/include
+LIBS += -L$$(PYTHON39)/libs -lpython3
+
+# Local
 INCLUDEPATH += $$PWD/include
 message($${INCLUDEPATH})
 SOURCES += $$files(./src/*.cpp)

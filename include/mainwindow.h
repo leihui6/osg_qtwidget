@@ -65,6 +65,7 @@ private:
     void setLabelColor(QLabel & qlabel, QString color);
     void setLabelText(QLabel & qlabel, QString text);
     URobot * p_urobot;
+    Eigen::Vector3f cylinderPoint; Eigen::Vector3f cylinderAxis;
     VisionSystem * p_vsystem;
 
 private slots:

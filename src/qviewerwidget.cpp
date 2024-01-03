@@ -80,9 +80,6 @@ size_t QViewerWidget::del_point_cloud(const QString point_cloud_name)
 {
     osg::ref_ptr<osg::Geode> geode = nullptr;
     update(point_cloud_name, geode);
-
-
-
     return m_node_map.size();
 }
 

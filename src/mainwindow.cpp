@@ -71,14 +71,12 @@ int MainWindow::initWidgets()
 
 void MainWindow::initDevices()
 {
-    std::vector<int> deviceVec;
     QMessageBox msgBox;
     // UR Robot
     try
     {
         p_urobot = new URobot("192.168.1.254");
         setLabelColor(*m_ui->label_cam_signal, "green");
-        deviceVec.push_back(0);
     }
     catch (const std::exception&)
     {
@@ -86,7 +84,6 @@ void MainWindow::initDevices()
         msgBox.exec();
         setLabelColor(*m_ui->label_cam_signal, "red");
         m_ui->pbt_scanning->setEnabled(false);
-        deviceVec.push_back(1);
     }
 
     // VisionSystem
@@ -94,7 +91,18 @@ void MainWindow::initDevices()
     {
         p_vsystem = new VisionSystem("D:\\Program Files\\VST\\VisenTOP Studio\\VisenTOP Studio.exe");
         setLabelColor(*m_ui->label_urob_signal, "green");
-        deviceVec.push_back(0);
+        p_vsystem->fittingCylidner("data/CylinderPoints.txt", cylinderPoint, cylinderAxis);
+
+        // add the axis of cylinder
+        m_qviewer->add_line_segment(
+                    point_3d(cylinderPoint[0], cylinderPoint[1],cylinderPoint[2]),
+                    point_3d(
+                    cylinderPoint[0] + 100*cylinderAxis[0],
+                    cylinderPoint[1] + 100*cylinderAxis[1],
+                    cylinderPoint[2] + 100*cylinderAxis[2]),
+                    "cylinderAxis", 2);
+        update_control_panel();
+
     }
     catch (const std::exception&)
     {
@@ -102,15 +110,6 @@ void MainWindow::initDevices()
         msgBox.exec();
         setLabelColor(*m_ui->label_urob_signal, "red");
         m_ui->pbt_scanning->setEnabled(false);
-        deviceVec.push_back(1);
-    }
-
-    auto sum_devec = std::accumulate(deviceVec.begin(), deviceVec.end(),
-                                    decltype(deviceVec)::value_type(0));
-    if (sum_devec != 0)
-    {
-        msgBox.setText("Devices Initialization Failed");
-        msgBox.exec();
     }
 }
 
@@ -187,8 +186,9 @@ void MainWindow::update_control_panel()
 {
     QVector<QString> pc_name_list = m_qviewer->get_pointcloud_list();
 
-    if (!pc_name_list.empty())
-        m_ui->listWidget->addItem(pc_name_list.back());
+    m_ui->listWidget->clear();
+    for(auto & pc_name:pc_name_list)
+        m_ui->listWidget->addItem(pc_name);
 }
 
 void MainWindow::update()
@@ -197,7 +197,6 @@ void MainWindow::update()
     {
         QMainWindow::update(this->geometry());
     }
-
 }
 
 void MainWindow::open()
@@ -414,6 +413,7 @@ void MainWindow::on_listWidget_itemClicked(QListWidgetItem *item)
 
 void MainWindow::on_pbt_scanning_clicked()
 {
+    float eachAngle = 20;
     if (p_urobot->isConnected() && p_vsystem->isConnected())
     {
         // scan around 360 degree
@@ -429,9 +429,11 @@ void MainWindow::on_pbt_scanning_clicked()
 
             std::vector<point_3d> pointsVec;
             VST3D_to_points3D(capturedPointsOnce, pointsVec);
-            m_qviewer->add_point_cloud(pointsVec, QString("Point#") + QString::number(i));
+            m_qviewer->add_point_cloud(pointsVec, QString("scannedPoint#") + QString::number(i));
 
-            m_pc_num += 1;
+            Eigen::Matrix4f tsfm = p_vsystem->generateRMatrixAlongAxis(cylinderPoint,cylinderAxis,eachAngle);
+
+            //m_pc_num += 1;
             update_control_panel();
 
             // rotate the robot flange
