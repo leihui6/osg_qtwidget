@@ -192,13 +192,13 @@ int QViewerWidget::show_XYZ_axes()
     std::vector<point_3d> line_segment_points{p0, p1, p0, p2, p0, p3};
 
     add_line_segment(p0, p1, AXIS_X, 2);
-    set_pointcloud_color("axis_x", osg::Vec4(255, 0, 0, 1));
+    set_pointcloud_color(AXIS_X, osg::Vec4(255, 0, 0, 1));
 
     add_line_segment(p0, p2, AXIS_Y, 2);
-    set_pointcloud_color("axis_y", osg::Vec4(0, 255, 0, 1));
+    set_pointcloud_color(AXIS_Y, osg::Vec4(0, 255, 0, 1));
 
     add_line_segment(p0, p3, AXIS_Z, 2);
-    set_pointcloud_color("axis_z", osg::Vec4(0, 0, 255, 1));
+    set_pointcloud_color(AXIS_Z, osg::Vec4(0, 0, 255, 1));
 
     return 0;
 }
@@ -370,8 +370,19 @@ int QViewerWidget::update(const QString &point_cloud_name, osg::ref_ptr<osg::Nod
     // add new one
     if(m_node_map.find(point_cloud_name) == m_node_map.end())
     {
+//        osg::PositionAttitudeTransform* tankTwoPAT =
+//                new osg::PositionAttitudeTransform();
+//        // move the second tank five units right, five units forward
+//        tankTwoPAT->setPosition(osg::Vec3(-0.085, -0.031, -0.860));
+//        // add the tank as a child of its transform to the scene
+//        scene->asGroup()->addChild(tankTwoPAT);
+
+//        tankTwoPAT->addChild(node);
+
        scene->asGroup()->addChild(node);
        m_node_map[point_cloud_name] = node;
+
+       //qDebug() << "added" << point_cloud_name;
     }
     // replace the current one
     else

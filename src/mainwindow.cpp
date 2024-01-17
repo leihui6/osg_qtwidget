@@ -4,6 +4,7 @@
 #include    <QGridLayout>
 #include    <QFileDialog>
 #include    <QWindow>
+#include    <QThread>
 
 #include    <osg/Group>
 #include    <osgDB/ReadFile>
@@ -36,7 +37,12 @@ MainWindow::MainWindow(QWidget *parent)
     timer.start(10);
 
     initWidgets();
-    initDevices();
+
+    //InitDevicesThread thread;
+    //thread.start();
+    //thread.wait();
+
+    update_control_panel();
     this->setWindowTitle(TITLE);
 }
 
@@ -57,7 +63,7 @@ int MainWindow::initWidgets()
     setLabelText(*m_ui->label_urob_signal, " ");
     setLabelColor(*m_ui->label_cam_signal, "red");
     setLabelColor(*m_ui->label_urob_signal, "red");
-    m_ui->pbt_scanning->setEnabled(true);
+    //m_ui->pbt_scanning->setEnabled(true);
 
     set_menu_action(m_add_xyz_text, true);
 
@@ -69,47 +75,57 @@ int MainWindow::initWidgets()
     return 0;
 }
 
-void MainWindow::initDevices()
+bool MainWindow::initDevices(int deviceID)
 {
     QMessageBox msgBox;
-    // UR Robot
-    try
+    if (deviceID == 0)
     {
-        p_urobot = new URobot("192.168.1.254");
-        setLabelColor(*m_ui->label_cam_signal, "green");
+        // UR Robot
+        try
+        {
+            if (p_urobot) delete p_urobot;
+            p_urobot = new URobot("192.168.1.254");
+            setLabelColor(*m_ui->label_cam_signal, "green");
+            return true;
+        }
+        catch (const std::exception&)
+        {
+            msgBox.setText("UR Robot Initialization Failed");
+            msgBox.exec();
+            setLabelColor(*m_ui->label_cam_signal, "red");
+            m_ui->pbt_scanning->setEnabled(false);
+            return false;
+        }
     }
-    catch (const std::exception&)
+    else if (deviceID == 1)
     {
-        msgBox.setText("UR Robot Initialization Failed");
-        msgBox.exec();
-        setLabelColor(*m_ui->label_cam_signal, "red");
-        m_ui->pbt_scanning->setEnabled(false);
-    }
+        // VisionSystem
+        try
+        {
+            if (p_vsystem) delete p_vsystem;
+            p_vsystem = new VisionSystem("D:\\Program Files\\VST\\VisenTOP Studio\\VisenTOP Studio.exe");
+            setLabelColor(*m_ui->label_urob_signal, "green");
+            p_vsystem->fittingCylidner("data/CylinderPoints.txt", cylinderPoint, cylinderAxis);
 
-    // VisionSystem
-    try
-    {
-        p_vsystem = new VisionSystem("D:\\Program Files\\VST\\VisenTOP Studio\\VisenTOP Studio.exe");
-        setLabelColor(*m_ui->label_urob_signal, "green");
-        p_vsystem->fittingCylidner("data/CylinderPoints.txt", cylinderPoint, cylinderAxis);
-
-        // add the axis of cylinder
-        m_qviewer->add_line_segment(
-                    point_3d(cylinderPoint[0], cylinderPoint[1],cylinderPoint[2]),
-                    point_3d(
-                    cylinderPoint[0] + 100*cylinderAxis[0],
-                    cylinderPoint[1] + 100*cylinderAxis[1],
-                    cylinderPoint[2] + 100*cylinderAxis[2]),
-                    "cylinderAxis", 2);
-        update_control_panel();
-
-    }
-    catch (const std::exception&)
-    {
-        msgBox.setText("3D VisionSystem Initialization Failed");
-        msgBox.exec();
-        setLabelColor(*m_ui->label_urob_signal, "red");
-        m_ui->pbt_scanning->setEnabled(false);
+            // add the axis of cylinder
+            m_qviewer->add_line_segment(
+                        point_3d(cylinderPoint[0], cylinderPoint[1],cylinderPoint[2]),
+                        point_3d(
+                        cylinderPoint[0] + 100*cylinderAxis[0],
+                        cylinderPoint[1] + 100*cylinderAxis[1],
+                        cylinderPoint[2] + 100*cylinderAxis[2]),
+                        "cylinderAxis", 2);
+            update_control_panel();
+            return true;
+        }
+        catch (const std::exception&)
+        {
+            msgBox.setText("3D VisionSystem Initialization Failed");
+            msgBox.exec();
+            setLabelColor(*m_ui->label_urob_signal, "red");
+            m_ui->pbt_scanning->setEnabled(false);
+            return false;
+        }
     }
 }
 
@@ -338,7 +354,6 @@ void MainWindow::on_pbt_edit_clicked()
         set_background_color(m_setting_wiondow->m_pc_params.background_color);
         m_qviewer->set_pointcloud_color(current_pointcloud_name, m_setting_wiondow->m_pc_params.pointcloud_color);
         m_qviewer->set_pointcloud_size(current_pointcloud_name, m_setting_wiondow->m_pc_params.pointcloud_size);
-
     }
     else
     {
@@ -353,7 +368,6 @@ void MainWindow::on_pbt_edit_clicked()
     m_ui->listWidget->clearSelection();
 }
 
-
 void MainWindow::on_pbt_del_clicked()
 {
     if (m_ui->listWidget->count() == 0 || !m_ui->listWidget->currentItem())
@@ -364,6 +378,16 @@ void MainWindow::on_pbt_del_clicked()
     {
         current_pointcloud_name = m_ui->listWidget->currentItem()->text();
         //qDebug() << current_pointcloud_name;
+    }
+
+    if (current_pointcloud_name == AXIS_X ||
+            current_pointcloud_name == AXIS_Y ||
+            current_pointcloud_name == AXIS_Z)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("AXIS is not supported to be removed.");
+        msgBox.exec();
+        return ;
     }
 
     bool click_status = false;
@@ -414,25 +438,36 @@ void MainWindow::on_listWidget_itemClicked(QListWidgetItem *item)
 void MainWindow::on_pbt_scanning_clicked()
 {
     float eachAngle = 20;
-    if (p_urobot->isConnected() && p_vsystem->isConnected())
+    size_t total_scanning = 1;
+    if (p_urobot == nullptr || p_vsystem == nullptr)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("UR Robot or 3D Camera is not initialized.");
+        msgBox.exec();
+    }
+    else
     {
         // scan around 360 degree
-        for (size_t i = 0; i < 3; i++)
+        for (size_t i = 0; i < total_scanning; i++)
         {
-            // scan the object
+            // Object scanning
             std::vector<VST3D_PT> capturedPointsOnce, t_capturedPointsOnce;
             qDebug() << "scanning";
             p_vsystem->scanOnce(capturedPointsOnce);
             qDebug()<<"capturedPointsOnce.size:"<<capturedPointsOnce.size();
+            // Save to file for saving
             std::string filename = "./Points_"+std::to_string(i) +".txt";
             p_vsystem->save2File(capturedPointsOnce, filename);
 
-            std::vector<point_3d> pointsVec;
-            VST3D_to_points3D(capturedPointsOnce, pointsVec);
-            m_qviewer->add_point_cloud(pointsVec, QString("scannedPoint#") + QString::number(i));
-
+            // Transform point cloud
             Eigen::Matrix4f tsfm = p_vsystem->generateRMatrixAlongAxis(cylinderPoint,cylinderAxis,eachAngle);
             p_vsystem->transformPointcloud(capturedPointsOnce, tsfm, t_capturedPointsOnce);
+
+            // Visulizalize the tranformed point cloud
+            std::vector<point_3d> pointsVec;
+            VST3D_to_points3D(t_capturedPointsOnce, pointsVec);
+            m_qviewer->add_point_cloud(pointsVec, QString("scannedPoint#") + QString::number(i));
+
             //m_pc_num += 1;
             update_control_panel();
 
@@ -441,4 +476,15 @@ void MainWindow::on_pbt_scanning_clicked()
             p_urobot->rotateAlongZ(20);
         }
     }
+}
+
+
+void MainWindow::on_ptb_urobot_clicked()
+{
+    initDevices(0);
+}
+
+void MainWindow::on_ptb_camera_clicked()
+{
+    initDevices(1);
 }

@@ -5,6 +5,7 @@
 #include <QWidget>
 #include <QWindow>
 #include <QVector>
+#include <QMessageBox>
 #include <iostream>
 
 #include <QJsonDocument>
@@ -20,9 +21,9 @@
 #define KEY_BGC "default-background-color"
 #define KEY_PCC "default-pointcloud-color"
 #define KEY_PCS "default-pointcloud-size"
-#define AXIS_X "axis_x"
-#define AXIS_Y "axis_y"
-#define AXIS_Z "axis_z"
+#define AXIS_X "AXIS_X"
+#define AXIS_Y "AXIS_Y"
+#define AXIS_Z "AXIS_Z"
 
 class QViewerWidget : public QWidget
 {

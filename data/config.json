@@ -6,11 +6,10 @@
         1
     ],
     "default-pointcloud-color": [
+        170,
         255,
-        0,
         0,
         1
     ],
-    "default-pointcloud-size": 4,
-    "crop_1": []
+    "default-pointcloud-size": 2
 }

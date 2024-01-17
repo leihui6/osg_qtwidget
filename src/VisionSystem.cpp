@@ -5,10 +5,10 @@ VisionSystem::VisionSystem(std::string installPath)
 {
 	this->installPath = installPath;
 
-    //initVisionSystem();
+    initVisionSystem();
 
-    //if (!isConnected())
-     //   throw std::bad_exception();
+    if (!isConnected())
+        throw std::bad_exception();
 }
 
 VisionSystem::~VisionSystem()
@@ -73,9 +73,9 @@ bool VisionSystem::scanOnce(std::vector<VST3D_PT> & VSTPoints)
 				VST3D_PT &pt = myPts[i];
 				//float x, y, z, nx, ny, nz;
 				//float cr, cg, cb;
-				tmp.x = pt.x;
-				tmp.y = pt.y;
-				tmp.z = pt.z;
+                tmp.x = pt.x/1000;
+                tmp.y = pt.y/1000;
+                tmp.z = pt.z/1000;
 				tmp.nx = pt.nx;
 				tmp.ny = pt.ny;
 				tmp.nz = pt.nz;
@@ -100,9 +100,9 @@ bool VisionSystem::scanOnce(std::vector<VST3D_PT> & VSTPoints)
 			VST3D_GetEachPointByIndex(i, &pt);
 			//float x, y, z, nx, ny, nz;
 			//float cr, cg, cb;
-			tmp.x = pt->x;
-			tmp.y = pt->y;
-			tmp.z = pt->z;
+            tmp.x = pt->x/1000;
+            tmp.y = pt->y/1000;
+            tmp.z = pt->z/1000;
 			tmp.nx = pt->nx;
 			tmp.ny = pt->ny;
 			tmp.nz = pt->nz;
@@ -122,9 +122,9 @@ void VisionSystem::save2File(const std::vector<VST3D_PT> &VSTPoints, std::string
     of.open(filename);
     for (auto &p : VSTPoints)
     {
-        of << p.x << " " << p.y << " " << p.z << " "
-           << p.nx << " " << p.ny << " " << p.nz << " "
-           << p.cr << " " << p.cg << " " << p.cb << "\n";
+        of << p.x << " " << p.y << " " << p.z << "\n";
+           //<< p.nx << " " << p.ny << " " << p.nz << " "
+           //<< p.cr << " " << p.cg << " " << p.cb << "\n";
     }
     of.close();
 }

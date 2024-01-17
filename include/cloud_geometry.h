@@ -13,6 +13,7 @@
 #include <osg/Geode>
 #include <osg/Point>
 #include <osg/ShapeDrawable>
+#include <osg/PositionAttitudeTransform>
 
 #include "VisionBooster.h"
 

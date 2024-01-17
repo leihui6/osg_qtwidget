@@ -30,6 +30,13 @@ namespace Ui
     class MainWindow;
 }
 
+class InitDevicesThread : public QThread {
+private:
+    void run() {
+        qDebug() << "Running" ;
+    }
+};
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -61,7 +68,7 @@ private:
     void set_pointcloud_size(int point_size);
     void update_control_panel();
 
-    void initDevices();
+    bool initDevices(int deviceID);
     void setLabelColor(QLabel & qlabel, QString color);
     void setLabelText(QLabel & qlabel, QString text);
     URobot * p_urobot;
@@ -80,6 +87,8 @@ private slots:
     //void on_listWidget_currentRowChanged(int currentRow);
     void on_listWidget_itemClicked(QListWidgetItem *item);
     void on_pbt_scanning_clicked();
+    void on_ptb_camera_clicked();
+    void on_ptb_urobot_clicked();
 };
 
 #endif // MAINWINDOW_H

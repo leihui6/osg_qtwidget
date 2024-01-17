@@ -16,8 +16,8 @@ DESTDIR = ../../bin
 
 win32 {
 
-    OSG_LIB_DIRECTORY = $$(OSG)/lib
-    OSG_INCLUDE_DIRECTORY = $$(OSG)/include
+    OSG_LIB_DIRECTORY = $$(OSG)\lib
+    OSG_INCLUDE_DIRECTORY = $$(OSG)\include
     message($${OSG_LIB_DIRECTORY})
     message($${OSG_INCLUDE_DIRECTORY})
 

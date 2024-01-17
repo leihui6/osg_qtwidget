@@ -44,7 +44,7 @@ bool cloud_io::load_point_cloud_txt(const QString & filename, std::vector<point_
             i++;
         }
 
-        point.set_xyz(value[0], value[1], value[2]);
+        point.set_xyz(value[0]/1000, value[1]/1000, value[2]/1000);
         point.set_nxyz(value[3], value[4], value[5]);
         point.set_rgb(value[6], value[7], value[8]);
 
