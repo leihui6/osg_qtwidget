@@ -3,7 +3,7 @@
 URobot::URobot(std::string ip_adress)
 	:rtdeControl(ip_adress), rtdeReceive(ip_adress)
 {
-	isConnected();
+    isConnected();
 }
 URobot::~URobot()
 {
@@ -47,6 +47,31 @@ void URobot::rotateAlongZ(float angle)
 	showQ("Current:", final_q);
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+}
+
+void URobot::rotate2Zero()
+{
+    if (!isConnected()) return;
+
+    std::vector<double> init_q = getActualQ(), new_q;
+    showQ("Current:", init_q);
+    // Target to the final joint
+    new_q = init_q;
+    new_q[5] = 0;
+
+    /**
+     * Move asynchronously in joint space to new_q, we specify asynchronous behavior by setting the async parameter to
+     * 'true'. Try to set the async parameter to 'false' to observe a default synchronous movement, which cannot be
+     * stopped by the stopJ function due to the blocking behaviour.
+     */
+    showQ("Target:", new_q);
+    rtdeControl.moveJ(new_q, 1.05 / 2, 1.4, false);
+    std::cout << "Moving.." << std::endl;
+
+    auto final_q = rtdeReceive.getActualQ();
+    showQ("Current:", final_q);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
 }
 
 bool URobot::isConnected()

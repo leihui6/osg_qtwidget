@@ -73,9 +73,9 @@ bool VisionSystem::scanOnce(std::vector<VST3D_PT> & VSTPoints)
 				VST3D_PT &pt = myPts[i];
 				//float x, y, z, nx, ny, nz;
 				//float cr, cg, cb;
-                tmp.x = pt.x/1000;
-                tmp.y = pt.y/1000;
-                tmp.z = pt.z/1000;
+                tmp.x = pt.x;
+                tmp.y = pt.y;
+                tmp.z = pt.z;
 				tmp.nx = pt.nx;
 				tmp.ny = pt.ny;
 				tmp.nz = pt.nz;
@@ -100,9 +100,9 @@ bool VisionSystem::scanOnce(std::vector<VST3D_PT> & VSTPoints)
 			VST3D_GetEachPointByIndex(i, &pt);
 			//float x, y, z, nx, ny, nz;
 			//float cr, cg, cb;
-            tmp.x = pt->x/1000;
-            tmp.y = pt->y/1000;
-            tmp.z = pt->z/1000;
+            tmp.x = pt->x;
+            tmp.y = pt->y;
+            tmp.z = pt->z;
 			tmp.nx = pt->nx;
 			tmp.ny = pt->ny;
 			tmp.nz = pt->nz;

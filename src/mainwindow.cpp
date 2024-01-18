@@ -85,14 +85,15 @@ bool MainWindow::initDevices(int deviceID)
         {
             if (p_urobot) delete p_urobot;
             p_urobot = new URobot("192.168.1.254");
-            setLabelColor(*m_ui->label_cam_signal, "green");
+            setLabelColor(*m_ui->label_urob_signal, "green");
             return true;
         }
-        catch (const std::exception&)
+        catch (const std::exception& e)
         {
+            qDebug() << e.what();
             msgBox.setText("UR Robot Initialization Failed");
             msgBox.exec();
-            setLabelColor(*m_ui->label_cam_signal, "red");
+            setLabelColor(*m_ui->label_urob_signal, "red");
             //m_ui->pbt_scanning->setEnabled(false);
             return false;
         }
@@ -104,7 +105,7 @@ bool MainWindow::initDevices(int deviceID)
         {
             if (p_vsystem) delete p_vsystem;
             p_vsystem = new VisionSystem("D:\\Program Files\\VST\\VisenTOP Studio\\VisenTOP Studio.exe");
-            setLabelColor(*m_ui->label_urob_signal, "green");
+            setLabelColor(*m_ui->label_cam_signal, "green");
             p_vsystem->fittingCylidner("data/CylinderPoints.txt", cylinderPoint, cylinderAxis);
 
             // add the axis of cylinder
@@ -122,7 +123,7 @@ bool MainWindow::initDevices(int deviceID)
         {
             msgBox.setText("3D VisionSystem Initialization Failed");
             msgBox.exec();
-            setLabelColor(*m_ui->label_urob_signal, "red");
+            setLabelColor(*m_ui->label_cam_signal, "red");
             //m_ui->pbt_scanning->setEnabled(false);
             return false;
         }
@@ -445,7 +446,7 @@ void MainWindow::on_listWidget_itemClicked(QListWidgetItem *item)
 void MainWindow::on_pbt_scanning_clicked()
 {
     float eachAngle = 20;
-    size_t total_scanning = 1;
+    size_t total_scanning = 18;
     if (p_urobot == nullptr || p_vsystem == nullptr)
     {
         QMessageBox msgBox;
@@ -454,6 +455,7 @@ void MainWindow::on_pbt_scanning_clicked()
     }
     else
     {
+        p_urobot->rotate2Zero();
         // scan around 360 degree
         for (size_t i = 0; i < total_scanning; i++)
         {
@@ -462,13 +464,14 @@ void MainWindow::on_pbt_scanning_clicked()
             qDebug() << "scanning";
             p_vsystem->scanOnce(capturedPointsOnce);
             qDebug()<<"capturedPointsOnce.size:"<<capturedPointsOnce.size();
-            // Save to file for saving
-            std::string filename = "./Points_"+std::to_string(i) +".txt";
-            p_vsystem->save2File(capturedPointsOnce, filename);
 
             // Transform point cloud
-            Eigen::Matrix4f tsfm = p_vsystem->generateRMatrixAlongAxis(cylinderPoint,cylinderAxis,eachAngle);
+            Eigen::Matrix4f tsfm = p_vsystem->generateRMatrixAlongAxis(cylinderPoint,cylinderAxis,eachAngle * (i + 1));
             p_vsystem->transformPointcloud(capturedPointsOnce, tsfm, t_capturedPointsOnce);
+
+            // Save to file for saving
+            std::string filename = "./data/t_Points_"+std::to_string(i) +".txt";
+            p_vsystem->save2File(t_capturedPointsOnce, filename);
 
             // Visulizalize the tranformed point cloud
             std::vector<point_3d> pointsVec;
@@ -479,8 +482,8 @@ void MainWindow::on_pbt_scanning_clicked()
             update_control_panel();
 
             // rotate the robot flange
-            qDebug() << "moving";
-            p_urobot->rotateAlongZ(20);
+            qDebug() << "Moving";
+            p_urobot->rotateAlongZ(eachAngle);
         }
     }
 }

@@ -414,6 +414,7 @@ int QViewerWidget::update(const QString &point_cloud_name, osg::ref_ptr<osg::Nod
           <<"m_node_map size:"<< m_node_map.size();
 
    m_viewer.home();
+   m_viewer.frame();
 
    return 0;
 }
