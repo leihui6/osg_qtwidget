@@ -24,6 +24,7 @@ public:
 	std::vector<double> getActualQ();
 
 	void rotateAlongZ(float angle);
+    void rotate2Zero();
 
 	bool isConnected();
 
