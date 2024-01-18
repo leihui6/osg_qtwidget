@@ -149,10 +149,21 @@
             </item>
            </layout>
           </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_6">
           <item>
-           <widget class="QPushButton" name="pbt_scanning">
+           <widget class="QPushButton" name="pbt_onceScan">
             <property name="text">
-             <string>Start Scanning</string>
+             <string>Scan Once</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pbt_autoScan">
+            <property name="text">
+             <string> AutoScanning</string>
             </property>
            </widget>
           </item>
@@ -267,7 +278,7 @@ p, li { white-space: pre-wrap; }
      <x>0</x>
      <y>0</y>
      <width>887</width>
-     <height>25</height>
+     <height>24</height>
     </rect>
    </property>
    <property name="font">

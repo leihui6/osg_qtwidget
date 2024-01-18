@@ -386,6 +386,7 @@ int QViewerWidget::update(const QString &point_cloud_name, osg::ref_ptr<osg::Nod
 
        scene->asGroup()->addChild(node);
        m_node_map[point_cloud_name] = node;
+       //m_viewer.frame();
 
        //qDebug() << "added" << point_cloud_name;
     }
@@ -403,6 +404,7 @@ int QViewerWidget::update(const QString &point_cloud_name, osg::ref_ptr<osg::Nod
        //qDebug() << "Replace";
        scene->asGroup()->replaceChild(m_node_map[point_cloud_name].get(), node);
        m_node_map[point_cloud_name] = node;
+       //m_viewer.frame();
     }
 
    set_pointcloud_color(point_cloud_name, m_pc_params.pointcloud_color);
@@ -414,7 +416,6 @@ int QViewerWidget::update(const QString &point_cloud_name, osg::ref_ptr<osg::Nod
           <<"m_node_map size:"<< m_node_map.size();
 
    m_viewer.home();
-   m_viewer.frame();
 
    return 0;
 }

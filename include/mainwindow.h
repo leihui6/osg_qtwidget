@@ -9,8 +9,10 @@
 #include <QTimer>
 #include <QTextEdit>
 #include <QVBoxLayout>
+#include <QInputDialog>
 #include <QListWidgetItem>
 #include <QMessageBox>
+#include <QDateTime>
 
 // child window
 #include <settingsdialog.h>
@@ -84,11 +86,11 @@ private slots:
     void on_actionColors_triggered();
     void on_pbt_edit_clicked();
     void on_pbt_del_clicked();
-    //void on_listWidget_currentRowChanged(int currentRow);
     void on_listWidget_itemClicked(QListWidgetItem *item);
-    void on_pbt_scanning_clicked();
     void on_ptb_camera_clicked();
     void on_ptb_urobot_clicked();
+    void on_pbt_onceScan_clicked();
+    void on_pbt_autoScan_clicked();
 };
 
 #endif // MAINWINDOW_H

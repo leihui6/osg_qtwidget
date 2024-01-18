@@ -248,9 +248,9 @@ void MainWindow::open()
 void MainWindow::clean()
 {
     m_qviewer->clean();
+    m_pc_num = 0;
 
     update_control_panel();
-
     print2widget("All data cleaned.", m_ui->textEdit);
 }
 
@@ -443,10 +443,15 @@ void MainWindow::on_listWidget_itemClicked(QListWidgetItem *item)
     }
 }
 
-void MainWindow::on_pbt_scanning_clicked()
+void MainWindow::on_pbt_autoScan_clicked()
 {
+    bool ok;
+    unsigned int autoTime = QInputDialog::getInt(this, "Set value",
+                   "Set the number of scans:", 2, 2, 18, 1, &ok) ;
+    if (!ok) return ;
+
     float eachAngle = 20;
-    size_t total_scanning = 18;
+    //size_t total_scanning = 18;
     if (p_urobot == nullptr || p_vsystem == nullptr)
     {
         QMessageBox msgBox;
@@ -455,9 +460,10 @@ void MainWindow::on_pbt_scanning_clicked()
     }
     else
     {
+        print2widget(QString("Start scanning with ")+QString::number(autoTime) + " times.", m_ui->textEdit);
         p_urobot->rotate2Zero();
         // scan around 360 degree
-        for (size_t i = 0; i < total_scanning; i++)
+        for (size_t i = 0; i < autoTime; i++)
         {
             // Object scanning
             std::vector<VST3D_PT> capturedPointsOnce, t_capturedPointsOnce;
@@ -497,4 +503,36 @@ void MainWindow::on_ptb_urobot_clicked()
 void MainWindow::on_ptb_camera_clicked()
 {
     initDevices(1);
+}
+
+void MainWindow::on_pbt_onceScan_clicked()
+{
+    if (p_urobot == nullptr || p_vsystem == nullptr)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("UR Robot or 3D Camera is not initialized.");
+        msgBox.exec();
+    }
+    else
+    {
+        p_urobot->rotate2Zero();
+        std::vector<VST3D_PT> capturedPointsOnce;
+        qDebug() << "scanning";
+        p_vsystem->scanOnce(capturedPointsOnce);
+        qDebug()<<"capturedPointsOnce.size:"<<capturedPointsOnce.size();
+
+        // Save to file for saving
+        QDateTime dateTime= QDateTime::currentDateTime();
+        QString dateStr = dateTime.toString("yyyy_MM_dd_hh_mm_ss");
+        QString filename = "./data/PointsScanOnce_"+ dateStr +".txt";
+        p_vsystem->save2File(capturedPointsOnce, filename.toStdString());
+
+        // Visulizalize the tranformed point cloud
+        std::vector<point_3d> pointsVec;
+        VST3D_to_points3D(capturedPointsOnce, pointsVec);
+        m_qviewer->add_point_cloud(pointsVec, QString("ScannedPoint#") + QString::number(m_pc_num));
+        m_pc_num += 1;
+
+        update_control_panel();
+    }
 }
