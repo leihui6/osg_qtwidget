@@ -54,12 +54,17 @@ osgViewer::Viewer *QViewerWidget::getViewer()
 
 int QViewerWidget::clean()
 {
-    if (m_scene == nullptr)
-        return 1;
+    if (m_scene == nullptr) return 1;
 
-    //m_scene->removeChildren(0, m_scene->getNumChildren());
-    //m_node_map.clear();
-
+    for (auto & node: m_node_map) {
+        QString pcName = node.first;
+        // Only keep the Coordinate System
+        if (pcName == AXIS_X || pcName == AXIS_Y || pcName == AXIS_Z)
+        {
+            continue;
+        }
+        del_point_cloud(pcName);
+    }
     return 0;
 }
 

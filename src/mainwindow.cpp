@@ -12,8 +12,8 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , m_add_xyz_text("Add XYZ axes")
-    , m_pc_num(0)
     , m_current_pointcloud_name(NONE)
+    , m_pc_num(0)
     , m_ui(new Ui::MainWindow)
     , m_qviewer(Q_NULLPTR)
     , p_urobot(nullptr)
@@ -93,7 +93,7 @@ bool MainWindow::initDevices(int deviceID)
             msgBox.setText("UR Robot Initialization Failed");
             msgBox.exec();
             setLabelColor(*m_ui->label_cam_signal, "red");
-            m_ui->pbt_scanning->setEnabled(false);
+            //m_ui->pbt_scanning->setEnabled(false);
             return false;
         }
     }
@@ -123,10 +123,11 @@ bool MainWindow::initDevices(int deviceID)
             msgBox.setText("3D VisionSystem Initialization Failed");
             msgBox.exec();
             setLabelColor(*m_ui->label_urob_signal, "red");
-            m_ui->pbt_scanning->setEnabled(false);
+            //m_ui->pbt_scanning->setEnabled(false);
             return false;
         }
     }
+    return false;
 }
 
 void MainWindow::setLabelColor(QLabel & qlabel, QString color)
@@ -235,8 +236,10 @@ void MainWindow::open()
     std::vector<point_3d> points;
     m_ci.load_point_cloud_txt(path, points);
     //std::cout << points.size()<<std::endl;
-    m_qviewer->add_point_cloud(points, PCNAME + ("#" + QVariant(m_pc_num).toString()));
+    m_qviewer->add_point_cloud(points, PCNAME + ("#" + QString::number(m_pc_num)));
     m_pc_num += 1;
+
+    print2widget("Open " + path + "(" + QString::number(points.size()) + ")", m_ui->textEdit);
 
     update_control_panel();
 }
@@ -244,6 +247,10 @@ void MainWindow::open()
 void MainWindow::clean()
 {
     m_qviewer->clean();
+
+    update_control_panel();
+
+    print2widget("All data cleaned.", m_ui->textEdit);
 }
 
 void MainWindow::quit()
@@ -466,9 +473,9 @@ void MainWindow::on_pbt_scanning_clicked()
             // Visulizalize the tranformed point cloud
             std::vector<point_3d> pointsVec;
             VST3D_to_points3D(t_capturedPointsOnce, pointsVec);
-            m_qviewer->add_point_cloud(pointsVec, QString("scannedPoint#") + QString::number(i));
+            m_qviewer->add_point_cloud(pointsVec, QString("ScannedPoint#") + QString::number(m_pc_num));
+            m_pc_num += 1;
 
-            //m_pc_num += 1;
             update_control_panel();
 
             // rotate the robot flange
