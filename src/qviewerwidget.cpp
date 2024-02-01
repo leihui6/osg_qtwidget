@@ -13,6 +13,7 @@ QViewerWidget::QViewerWidget(const QRect &geometry)
     , m_pc_params()
     , m_config_name("./data/config.json")
     , m_scene(new osg::Group)
+    , m_viewer()
 
 {
     this->setAttribute(Qt::WA_NativeWindow, true);
@@ -25,6 +26,10 @@ QViewerWidget::QViewerWidget(const QRect &geometry)
     m_viewer.addEventHandler(new osgViewer::StatsHandler);
     m_viewer.setCameraManipulator(new osgGA::TrackballManipulator);
     m_viewer.setThreadingModel(osgViewer::Viewer::SingleThreaded);
+    m_viewer.setRunMaxFrameRate(60);
+    m_viewer.setRunFrameScheme(osgViewer::ViewerBase::ON_DEMAND);
+    //m_viewer.realize();
+
     osgQt::GraphicsWindowQt *gw = static_cast<osgQt::GraphicsWindowQt *>(m_viewer.getCamera()->getGraphicsContext());
 
     QGridLayout *layout = new QGridLayout;
@@ -238,6 +243,7 @@ void QViewerWidget::initCamera(const QRect &geometry)
     osg::Camera *camera = m_viewer.getCamera();
 
     m_gw = createGraphicsWindow(geometry);
+    //m_gw->setSyncToVBlank(false);
 
     m_gw->setTouchEventsEnabled(true);
     camera->setGraphicsContext(m_gw.get());

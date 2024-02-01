@@ -25,6 +25,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     QGridLayout * layout = new QGridLayout;
     m_qviewer = new QViewerWidget(QRect(0, 0, m_ui->frame->width(), m_ui->frame->height()));
+
     layout->addWidget(m_qviewer);
     m_ui->frame->setLayout(layout);
     m_ui->verticalLayout->addWidget(m_ui->frame);
@@ -34,7 +35,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_ui->actionOpen, &QAction::triggered, this, &MainWindow::open);
 
     connect(&timer, &QTimer::timeout, this, &MainWindow::update);
-    timer.start(10);
+    timer.setInterval(1000/60.0);
+    timer.start();
 
     initWidgets();
 
@@ -159,6 +161,11 @@ void MainWindow::paintEvent(QPaintEvent *)
     if (windowHandle() && windowHandle()->isExposed())
     {
         m_ui->frame->update();
+//        QScreen* ws =  windowHandle()->screen();
+//        if (ws) {
+//            double rate = ws->refreshRate();
+//            qDebug() <<"rate: "<< rate; // 59
+//        }
     }
 }
 
@@ -465,7 +472,9 @@ void MainWindow::on_pbt_autoScan_clicked()
         // scan around 360 degree
         for (size_t i = 0; i < autoTime; i++)
         {
-            // Object scanning
+            print2widget("#" + QString::number(i+1) + ": Scanning", m_ui->textEdit);
+
+            // Object Scanning
             std::vector<VST3D_PT> capturedPointsOnce, t_capturedPointsOnce;
             qDebug() << "scanning";
             p_vsystem->scanOnce(capturedPointsOnce);
@@ -485,11 +494,15 @@ void MainWindow::on_pbt_autoScan_clicked()
             m_qviewer->add_point_cloud(pointsVec, QString("ScannedPoint#") + QString::number(m_pc_num));
             m_pc_num += 1;
 
+            this->m_qviewer->getViewer()->frame();
             update_control_panel();
 
+            if (i == autoTime - 1)
+            {
+                break;
+            }
             // rotate the robot flange
-            qDebug() << "Moving";
-            p_urobot->rotateAlongZ(eachAngle);
+            p_urobot->rotateAlongZ(-eachAngle);
         }
     }
 }
@@ -533,6 +546,7 @@ void MainWindow::on_pbt_onceScan_clicked()
         m_qviewer->add_point_cloud(pointsVec, QString("ScannedPoint#") + QString::number(m_pc_num));
         m_pc_num += 1;
 
+        //this->update();
         update_control_panel();
     }
 }
