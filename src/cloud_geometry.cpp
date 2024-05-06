@@ -153,3 +153,40 @@ void VST3D_to_points3D(const std::vector<VST3D_PT> & VST3DPoints, std::vector<po
         point3DVec.push_back(tmp);
     }
 }
+
+void filter_points_close2Cylinder(std::vector<VST3D_PT> &points, double distance_threshold, Eigen::Vector3f cylinderPoint, Eigen::Vector3f cylinderAxis, std::vector<VST3D_PT> &remainPoints)
+{
+    for (size_t i = 0; i< points.size(); i++)
+    {
+        VST3D_PT footP = footPointOnLine(points[i], cylinderPoint, cylinderAxis);
+        double dis = distance(footP, points[i]);
+        if (dis < distance_threshold)
+        {
+            remainPoints.push_back(points[i]);
+        }
+    }
+}
+
+VST3D_PT footPointOnLine(const VST3D_PT &point, Eigen::Vector3f cylinderPoint, Eigen::Vector3f cylinderAxis)
+{
+    double t = ((point.x - cylinderPoint[0]) * cylinderAxis[0] +
+            (point.y - cylinderPoint[1]) * cylinderAxis[1] +
+            (point.z - cylinderPoint[2]) * cylinderAxis[2]) /
+            (cylinderAxis[0] * cylinderAxis[0] +
+            cylinderAxis[1] * cylinderAxis[1] +
+            cylinderAxis[2] * cylinderAxis[2]);
+
+    VST3D_PT footPoint;
+    footPoint.x = cylinderPoint[0] + t * cylinderAxis[0];
+    footPoint.y = cylinderPoint[1] + t * cylinderAxis[1];
+    footPoint.z = cylinderPoint[2] + t * cylinderAxis[2];
+
+    return footPoint;
+}
+
+double distance(const VST3D_PT &p1, const VST3D_PT &p2)
+{
+    return std::sqrt((p2.x - p1.x) * (p2.x - p1.x) +
+                         (p2.y - p1.y) * (p2.y - p1.y) +
+                         (p2.z - p1.z) * (p2.z - p1.z));
+}

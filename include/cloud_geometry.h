@@ -15,6 +15,8 @@
 #include <osg/ShapeDrawable>
 #include <osg/PositionAttitudeTransform>
 
+#include <Eigen/Dense>
+
 #include "VisionBooster.h"
 
 struct pointcloud_params
@@ -76,5 +78,13 @@ void points_to_osg_structure(std::vector<point_3d>& points, osg::ref_ptr<osg::Ve
 void points_to_geometry_node(std::vector<point_3d>& points, osg::ref_ptr<osg::Geometry> geometry, float r, float g, float b, float w);
 
 void VST3D_to_points3D(const std::vector<VST3D_PT> & VST3DPoints, std::vector<point_3d> & point3DVec);
+
+void filter_points_close2Cylinder(std::vector<VST3D_PT> & points, double distance_threshold,
+                                  Eigen::Vector3f cylinderPoint, Eigen::Vector3f cylinderAxis,
+                                  std::vector<VST3D_PT> & remainPoints);
+
+double distance(const VST3D_PT& p1, const VST3D_PT& p2);
+
+VST3D_PT footPointOnLine(const VST3D_PT& point, Eigen::Vector3f cylinderPoint, Eigen::Vector3f cylinderAxis);
 
 #endif  // CLOUD_GEOMETRY_H

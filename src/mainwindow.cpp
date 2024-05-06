@@ -108,7 +108,7 @@ bool MainWindow::initDevices(int deviceID)
             if (p_vsystem) delete p_vsystem;
             p_vsystem = new VisionSystem("D:\\Program Files\\VST\\VisenTOP Studio\\VisenTOP Studio.exe");
             setLabelColor(*m_ui->label_cam_signal, "green");
-            p_vsystem->fittingCylidner("data/CylinderPoints.txt", cylinderPoint, cylinderAxis);
+            p_vsystem->fittingCylidner("data/bevelGear/CylinderPoints.txt", cylinderPoint, cylinderAxis);
 
             // add the axis of cylinder
             m_qviewer->add_line_segment(
@@ -457,7 +457,7 @@ void MainWindow::on_pbt_autoScan_clicked()
                    "Set the number of scans:", 2, 2, 18, 1, &ok) ;
     if (!ok) return ;
 
-    float eachAngle = 20;
+    float eachAngle = 360/autoTime;
     //size_t total_scanning = 18;
     if (p_urobot == nullptr || p_vsystem == nullptr)
     {
@@ -480,12 +480,15 @@ void MainWindow::on_pbt_autoScan_clicked()
             p_vsystem->scanOnce(capturedPointsOnce);
             qDebug()<<"capturedPointsOnce.size:"<<capturedPointsOnce.size();
 
+            std::vector<VST3D_PT> onlyWorkpiece;
+            filter_points_close2Cylinder(capturedPointsOnce, 55, this->cylinderPoint, this->cylinderAxis, onlyWorkpiece);
+
             // Transform point cloud
             Eigen::Matrix4f tsfm = p_vsystem->generateRMatrixAlongAxis(cylinderPoint,cylinderAxis,eachAngle * (i + 1));
-            p_vsystem->transformPointcloud(capturedPointsOnce, tsfm, t_capturedPointsOnce);
+            p_vsystem->transformPointcloud(onlyWorkpiece, tsfm, t_capturedPointsOnce);
 
             // Save to file for saving
-            std::string filename = "./data/t_Points_"+std::to_string(i) +".txt";
+            std::string filename = "./data/bevelGear/t_Points_"+std::to_string(i) +".txt";
             p_vsystem->save2File(t_capturedPointsOnce, filename);
 
             // Visulizalize the tranformed point cloud
@@ -534,15 +537,18 @@ void MainWindow::on_pbt_onceScan_clicked()
         p_vsystem->scanOnce(capturedPointsOnce);
         qDebug()<<"capturedPointsOnce.size:"<<capturedPointsOnce.size();
 
+        std::vector<VST3D_PT> onlyWorkpiece;
+        filter_points_close2Cylinder(capturedPointsOnce, 55, this->cylinderPoint, this->cylinderAxis, onlyWorkpiece);
+
         // Save to file for saving
         QDateTime dateTime= QDateTime::currentDateTime();
         QString dateStr = dateTime.toString("yyyy_MM_dd_hh_mm_ss");
-        QString filename = "./data/PointsScanOnce_"+ dateStr +".txt";
-        p_vsystem->save2File(capturedPointsOnce, filename.toStdString());
+        QString filename = "./data/bevelGear/PointsScanOnce_"+ dateStr +".txt";
+        p_vsystem->save2File(onlyWorkpiece, filename.toStdString());
 
         // Visulizalize the tranformed point cloud
         std::vector<point_3d> pointsVec;
-        VST3D_to_points3D(capturedPointsOnce, pointsVec);
+        VST3D_to_points3D(onlyWorkpiece, pointsVec);
         m_qviewer->add_point_cloud(pointsVec, QString("ScannedPoint#") + QString::number(m_pc_num));
         m_pc_num += 1;
 
